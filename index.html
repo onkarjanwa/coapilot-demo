@@ -1,0 +1,1320 @@
+<!doctype html>
+<html lang="en-IN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CoA Co-Pilot · Interactive demo</title>
+<meta name="description" content="See a supplier Certificate of Analysis checked against your own specs in seconds: side-by-side verification, sign-off and an audit-ready record.">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0f766e">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<!-- Link previews (LinkedIn, WhatsApp, Slack). These URLs must be absolute. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="CoA Co-Pilot">
+<meta property="og:title" content="CoA Co-Pilot: check supplier CoAs in seconds">
+<meta property="og:description" content="A 2-minute interactive demo: every CoA result checked against your own spec, side by side with the original certificate, then signed off into an audit-ready record.">
+<meta property="og:url" content="https://coapilot.mattecurve.com/">
+<meta property="og:image" content="https://coapilot.mattecurve.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://coapilot.mattecurve.com/og-image.png">
+<style>
+:root{
+  --bg:#ffffff; --surface:#f3f8f8; --surface-2:#e8f1f1; --card:#ffffff;
+  --line:#d5e2e2; --line-strong:#b3c7c7;
+  --ink:#0c1d20; --ink-2:#3b5156; --ink-3:#647a80;
+  --accent:#0f766e; --accent-hover:#0b5f58; --accent-ink:#ffffff; --accent-soft:#ddf1ee; --accent-line:#8fd0c6;
+  --ok:#157a3a; --ok-soft:#e4f4e9; --ok-line:#a5d9b5;
+  --warn:#9a5b00; --warn-soft:#fdf3d8; --warn-line:#ecc977;
+  --bad:#b42318; --bad-soft:#fdeceb; --bad-line:#f0aaa4;
+  --paper:#fbf8f0; --paper-ink:#24221d; --paper-line:#c9c1ad;
+  --shadow:0 1px 2px rgba(12,29,32,.06),0 6px 20px rgba(12,29,32,.07);
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --r:10px; --topbar:52px; --stepbar:46px; --navbar:68px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0a1416; --surface:#0f1c1f; --surface-2:#152629; --card:#101e21;
+    --line:#22373b; --line-strong:#33504f;
+    --ink:#e3eeee; --ink-2:#a7bcbf; --ink-3:#7f9599;
+    --accent:#2cc5b2; --accent-hover:#4fd6c5; --accent-ink:#04211e; --accent-soft:#0d2f2c; --accent-line:#1f6b63;
+    --ok:#5bd38a; --ok-soft:#0e2a19; --ok-line:#1f5a36;
+    --warn:#f2c14e; --warn-soft:#2b220c; --warn-line:#6b5418;
+    --bad:#ff8a80; --bad-soft:#331513; --bad-line:#7a2b25;
+    --paper:#ebe6d9; --paper-ink:#24221d; --paper-line:#bdb59f;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.35);
+    color-scheme:dark;
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--sans);-webkit-font-smoothing:antialiased}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--accent)}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+svg.i{width:16px;height:16px;flex:none;vertical-align:-3px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* ---------- chrome ---------- */
+.top{position:sticky;top:0;z-index:30;height:var(--topbar);display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 16px;background:var(--bg);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700;letter-spacing:-.01em;white-space:nowrap}
+.brand .tag{font:600 10px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);border:1px solid var(--accent-line);padding:3px 6px;border-radius:999px}
+.top-actions{display:flex;gap:8px;align-items:center}
+.steps{position:sticky;top:var(--topbar);z-index:29;height:var(--stepbar);display:flex;align-items:center;gap:4px;padding:0 12px;overflow-x:auto;scrollbar-width:none;background:var(--surface);border-bottom:1px solid var(--line)}
+.steps::-webkit-scrollbar{display:none}
+.step{display:flex;align-items:center;gap:6px;flex:none;border:0;background:none;padding:6px 10px;border-radius:999px;color:var(--ink-3);font-size:13px;font-weight:600;white-space:nowrap}
+.step .n{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;border:1.5px solid currentColor;font:600 11px/1 var(--mono)}
+.step.seen{color:var(--ink-2)}
+.step.seen .n{background:var(--surface-2)}
+.step.on{color:var(--accent-ink);background:var(--accent)}
+.step.on .n{border-color:var(--accent-ink);background:transparent}
+.step-sep{flex:none;width:10px;height:1px;background:var(--line-strong)}
+main{max-width:1240px;margin:0 auto;padding:16px 16px calc(var(--navbar) + 28px)}
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 16px calc(10px + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-top:1px solid var(--line)}
+.nav .where{font:12px/1.2 var(--mono);color:var(--ink-3);text-align:center}
+.nav .btn{min-width:96px}
+
+/* ---------- buttons, chips ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:40px;padding:8px 14px;border-radius:8px;border:1px solid var(--line-strong);background:var(--card);color:var(--ink);font-weight:600;font-size:14px;text-decoration:none;transition:background .15s,border-color .15s}
+.btn:hover{border-color:var(--accent);}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--ink-2)}
+.btn.ghost:hover{background:var(--surface-2)}
+.btn.sm{min-height:34px;padding:5px 11px;font-size:13px}
+.btn.lg{min-height:50px;padding:12px 22px;font-size:16px}
+.btn.danger{background:var(--bad);border-color:var(--bad);color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn:focus-visible,.step:focus-visible,.row:focus-visible,.seg button:focus-visible,.tabs button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px 2px 6px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap;border:1px solid}
+.badge svg.i{width:13px;height:13px;vertical-align:0}
+.b-green{color:var(--ok);background:var(--ok-soft);border-color:var(--ok-line)}
+.b-yellow{color:var(--warn);background:var(--warn-soft);border-color:var(--warn-line)}
+.b-red{color:var(--bad);background:var(--bad-soft);border-color:var(--bad-line)}
+.b-gray{color:var(--ink-2);background:var(--surface-2);border-color:var(--line)}
+.b-accent{color:var(--accent);background:var(--accent-soft);border-color:var(--accent-line)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px}
+.dot.red{background:var(--bad)}.dot.yellow{background:var(--warn)}.dot.green{background:var(--ok)}
+
+/* ---------- layout bits ---------- */
+h1,h2,h3{letter-spacing:-.015em;margin:0}
+h2{font-size:22px;line-height:1.25}
+.sub{color:var(--ink-2);margin:4px 0 16px;max-width:68ch}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+.eyebrow{font:600 11px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
+.fine{font-size:12px;color:var(--ink-3)}
+.kv{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 16px}
+.kv div{min-width:0}
+.kv dt{font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.kv dd{margin:1px 0 0;font-size:13px;overflow-wrap:anywhere}
+.hint{display:flex;gap:10px;align-items:flex-start;margin:0 0 14px;padding:10px 12px;border-radius:var(--r);background:var(--accent-soft);border:1px solid var(--accent-line);color:var(--ink);font-size:14px}
+.hint .pulse-dot{flex:none;margin-top:5px;width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 0 var(--accent);animation:ping 1.8s infinite}
+.hint .x{margin-left:auto;flex:none;border:0;background:none;color:var(--ink-3);padding:0 2px;font-size:18px;line-height:1}
+@keyframes ping{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--accent) 60%,transparent)}80%,100%{box-shadow:0 0 0 10px transparent}}
+.pulse{position:relative;animation:glow 1.8s infinite}
+@keyframes glow{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--accent) 55%,transparent)}70%,100%{box-shadow:0 0 0 9px transparent}}
+
+/* ---------- intro / done ---------- */
+.hero{min-height:calc(100dvh - var(--topbar) - 40px);display:grid;place-items:center;padding:8px 0 24px}
+.hero-card{max-width:560px;width:100%;padding:26px 22px}
+.hero h1{font-size:28px;line-height:1.15;margin:10px 0 12px}
+.hero .lede{font-size:16px;color:var(--ink-2);margin:0 0 16px}
+.hero ol{margin:0 0 22px;padding:0;list-style:none;display:grid;gap:10px}
+.hero li{display:flex;gap:10px;align-items:flex-start;font-size:14.5px}
+.hero li .n{flex:none;display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font:700 12px/1 var(--mono);border:1px solid var(--accent-line)}
+.hero .cta{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:6px 0 18px}
+.stat{padding:12px;border-radius:var(--r);background:var(--surface);border:1px solid var(--line)}
+.stat b{display:block;font:700 24px/1.1 var(--mono);letter-spacing:-.02em}
+.stat span{font-size:12.5px;color:var(--ink-2)}
+.decisions{display:grid;gap:8px;margin:0 0 18px}
+.decisions .d{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r)}
+
+/* ---------- email ---------- */
+.mail{overflow:hidden;margin-bottom:14px}
+.mail-head{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--surface);border-bottom:1px solid var(--line);font-size:13px;color:var(--ink-2);font-weight:600}
+.mail-item{display:flex;gap:12px;padding:14px;border-bottom:1px solid var(--line);transition:opacity .4s,transform .4s}
+.mail-item:last-child{border-bottom:0}
+.mail-item.sent{opacity:.6}
+.avatar{flex:none;display:grid;place-items:center;width:38px;height:38px;border-radius:50%;font:700 13px/1 var(--sans);color:#fff}
+.mail-item .from{display:flex;justify-content:space-between;gap:8px;font-weight:700;font-size:14px}
+.mail-item .from span{font-weight:400;color:var(--ink-3);font-size:12px}
+.mail-item .subj{font-size:13.5px;margin:1px 0 2px}
+.mail-item .prev{font-size:13px;color:var(--ink-3);display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+.att{display:inline-flex;align-items:center;gap:6px;margin-top:6px;padding:4px 8px;border:1px solid var(--line);border-radius:6px;font-size:12px;color:var(--ink-2);background:var(--surface)}
+.att b{color:var(--bad);font:700 10px/1 var(--mono)}
+.fwd{display:flex;flex-direction:column;gap:12px;padding:14px;margin-bottom:14px}
+.fwd code{font:12.5px/1.4 var(--mono);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:8px 10px;display:block;overflow-wrap:anywhere}
+.proc{padding:14px}
+.proc ul{list-style:none;margin:0 0 4px;padding:0;display:grid;gap:8px}
+.proc li{display:flex;gap:10px;align-items:center;font-size:14px;color:var(--ink-3)}
+.proc li.done{color:var(--ink)}
+.proc li .st{flex:none;display:grid;place-items:center;width:22px;height:22px;border-radius:50%;border:1.5px solid var(--line-strong)}
+.proc li.done .st{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.proc li.run .st{border-color:var(--accent);border-top-color:transparent;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.proc .ready{margin-top:14px;padding-top:14px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+
+/* ---------- inbox ---------- */
+.tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px}
+.tile{padding:10px 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--card)}
+.tile b{display:block;font:700 22px/1.1 var(--mono)}
+.tile span{font-size:12px;color:var(--ink-2);display:flex;align-items:center;gap:4px}
+.chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin-bottom:10px;padding-bottom:2px}
+.chip{flex:none;border:1px solid var(--line-strong);background:var(--card);border-radius:999px;padding:5px 12px;font-size:13px;font-weight:600;color:var(--ink-2)}
+.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.list{overflow:hidden}
+.li{display:flex;gap:12px;align-items:center;width:100%;text-align:left;padding:12px 14px;border:0;border-bottom:1px solid var(--line);background:var(--card)}
+.li:last-child{border-bottom:0}
+.li.new{background:color-mix(in srgb,var(--accent-soft) 45%,var(--card))}
+.li:hover{background:var(--surface)}
+.li .ic{flex:none;display:grid;place-items:center;width:36px;height:36px;border-radius:8px;background:var(--surface-2);color:var(--ink-2)}
+.li .mid{flex:1;min-width:0}
+.li .ing{font-weight:700;font-size:14.5px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.li .meta{font-size:12.5px;color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.li .flags{display:flex;gap:10px;font-size:12px;color:var(--ink-2);margin-top:3px}
+.li .right{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.li .date{font-size:11.5px;color:var(--ink-3)}
+.new-tag{font:700 9.5px/1 var(--mono);letter-spacing:.08em;color:var(--accent-ink);background:var(--accent);padding:3px 5px;border-radius:4px}
+
+/* ---------- check ---------- */
+.seg{display:inline-flex;padding:3px;gap:3px;border-radius:10px;background:var(--surface-2);border:1px solid var(--line);margin-bottom:12px;max-width:100%}
+.seg button{display:flex;align-items:center;gap:6px;border:0;background:none;padding:7px 12px;border-radius:7px;font-weight:600;font-size:14px;color:var(--ink-2);white-space:nowrap}
+.seg button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.cnt{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 5px;border-radius:999px;font:700 11px/1 var(--mono);color:#fff;background:var(--bad)}
+.batch{padding:12px 14px;margin-bottom:12px}
+.batch-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:10px}
+.batch-top h3{font-size:16px}
+.batch-top .who{font-size:13px;color:var(--ink-2)}
+.summary-pills{display:flex;gap:6px;flex-wrap:wrap}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:3px;padding:3px;border-radius:10px;background:var(--surface-2);border:1px solid var(--line);margin-bottom:12px}
+.tabs button{border:0;background:none;padding:8px;border-radius:7px;font-weight:600;font-size:14px;color:var(--ink-2)}
+.tabs button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.split{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
+.split[data-tab="results"] .pane-cert{display:none}
+.split[data-tab="cert"] .pane-results{display:none}
+.results{overflow:hidden}
+.results-head{display:flex;justify-content:space-between;padding:8px 14px;background:var(--surface);border-bottom:1px solid var(--line);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.group{padding:6px 14px;font-size:12px;font-weight:700;color:var(--ink-2);background:var(--surface);border-bottom:1px solid var(--line)}
+.row{display:flex;gap:10px;align-items:center;width:100%;text-align:left;padding:11px 14px 11px 11px;border:0;border-left:3px solid transparent;border-bottom:1px solid var(--line);background:var(--card)}
+.row:hover{background:var(--surface)}
+.row.s-red{border-left-color:var(--bad)}
+.row.s-yellow{border-left-color:var(--warn)}
+.row.s-green{border-left-color:var(--ok)}
+.row.sel{background:var(--surface-2)}
+.row .main{flex:1;min-width:0}
+.row .pn{font-weight:600;font-size:14px}
+.row .ps{font-size:12.5px;color:var(--ink-3)}
+.row .rv{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.row .val{font-size:14px;font-weight:600}
+.row .val .u{font-size:11.5px;color:var(--ink-3);font-weight:400}
+.row .val.miss{color:var(--ink-3);font-weight:400;font-style:italic;font-family:var(--sans)}
+.detail{padding:12px 14px 14px 14px;border-bottom:1px solid var(--line);background:var(--surface-2);font-size:13.5px}
+.detail ul{margin:0 0 10px;padding:0;list-style:none;display:grid;gap:6px}
+.detail li{display:flex;gap:8px;align-items:flex-start}
+.detail li svg.i{margin-top:2px;color:var(--ink-3)}
+.detail q{font-family:var(--mono);font-size:12.5px;background:var(--card);border:1px solid var(--line);border-radius:4px;padding:0 4px;quotes:none}
+.detail .acts{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.edit{display:flex;align-items:center;gap:6px}
+.edit input,.spec-in{width:92px;min-height:38px;padding:6px 8px;border:1px solid var(--line-strong);border-radius:7px;background:var(--card);font-family:var(--mono);font-size:14px;text-align:right}
+.edit input:focus,.spec-in:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent)}
+.verified{display:flex;align-items:center;gap:6px;color:var(--ok);font-weight:600}
+.only-phone{display:inline-flex}
+.back-chip{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--navbar) + 12px + env(safe-area-inset-bottom));z-index:31;display:flex;align-items:center;gap:8px;max-width:calc(100% - 32px);padding:9px 14px;border-radius:999px;border:1px solid var(--line-strong);background:var(--card);box-shadow:var(--shadow);font-weight:600;font-size:13.5px;white-space:nowrap}
+.back-chip>span{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.back-chip .badge{flex:none}
+.pane-cert{min-width:0}
+.cert-frame{border-radius:var(--r);background:var(--surface-2);border:1px solid var(--line);padding:14px 10px 18px;overflow:hidden}
+.cert-cap{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--ink-3);margin:0 2px 10px}
+
+/* ---------- the scanned certificate ---------- */
+.paper{position:relative;max-width:660px;margin:0 auto;padding:18px 16px 20px;color:var(--paper-ink);font:11.5px/1.35 Arial,"Helvetica Neue",Helvetica,sans-serif;border-radius:2px;
+  background:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .25  0 0 0 0 .22  0 0 0 0 .15  0 0 0 .10 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"),
+    radial-gradient(120% 90% at 50% 40%,transparent 60%,rgba(90,70,30,.10) 100%),
+    var(--paper);
+  box-shadow:0 1px 2px rgba(0,0,0,.18),0 8px 24px rgba(0,0,0,.14)}
+.paper.tur{font-family:Georgia,"Times New Roman",serif}
+.paper .scanline{position:absolute;top:6px;right:10px;font:9px/1 var(--mono);color:#8d8573}
+.lh{display:flex;gap:12px;align-items:center;padding-bottom:10px;border-bottom:2px solid currentColor;margin-bottom:10px}
+.paper.wpc .lh{color:#1f3f7a}
+.paper.tur .lh{color:#2f5b1f}
+.lh svg{flex:none;width:44px;height:44px}
+.lh-name{font-weight:800;font-size:14px;letter-spacing:.02em;line-height:1.15}
+.lh-addr{font-size:9.5px;color:#5a5446;margin-top:2px}
+.doc-title{text-align:center;font-weight:800;font-size:13px;letter-spacing:.12em;text-decoration:underline;margin:4px 0 10px}
+.paper table{width:100%;border-collapse:collapse;margin-bottom:10px}
+.paper th,.paper td{border:1px solid var(--paper-line);padding:4px 5px;text-align:left;vertical-align:top}
+.paper th{background:rgba(120,100,60,.08);font-weight:700;font-size:10.5px}
+.paper .meta td:nth-child(odd){font-weight:700;width:22%;background:rgba(120,100,60,.05)}
+.paper .tests td:first-child{width:28px;text-align:center}
+.paper .tests td.res{font-weight:700;white-space:nowrap}
+.paper .smudge{filter:blur(.35px);text-shadow:0 0 1.5px rgba(0,0,0,.45);letter-spacing:.04em}
+.paper .remark{font-style:italic;margin:6px 0 14px}
+.paper .signs{display:flex;justify-content:space-between;align-items:flex-end;gap:10px}
+.paper .signs .s{font-size:10px;min-width:0}
+.paper .signs svg.sig{display:block;width:110px;height:34px}
+.paper .stamp{width:84px;height:84px;flex:none;opacity:.78;transform:rotate(-14deg)}
+.paper .foot{margin-top:10px;font-size:8.5px;color:#7b745f;text-align:center}
+.paper tr.hl td,.paper td.hl{background:var(--hlt) !important;border-top:2px solid var(--hl);border-bottom:2px solid var(--hl)}
+.paper tr.hl td:first-child{border-left:2px solid var(--hl)}
+.paper tr.hl td:last-child{border-right:2px solid var(--hl)}
+.paper td.hl{border:2px solid var(--hl)}
+.h-red{--hl:#d1372c;--hlt:rgba(209,55,44,.13)}
+.h-yellow{--hl:#d18b00;--hlt:rgba(230,170,20,.20)}
+.h-green{--hl:#1f8a47;--hlt:rgba(31,138,71,.12)}
+.paper tr.missing td{border:2px dashed #d1372c;background:rgba(209,55,44,.09);color:#a3241b;font:700 11.5px/1.35 var(--sans);text-align:center;padding:7px}
+.paper .col-method{display:none}
+
+/* ---------- spec ---------- */
+.spec-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px}
+.spec-card{overflow:hidden;margin-bottom:14px}
+.spec-head{padding:12px 14px;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;justify-content:space-between}
+.spec-head h3{font-size:16px}
+.spec-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 12px;padding:12px 14px;border-bottom:1px solid var(--line);align-items:center}
+.spec-row:last-child{border-bottom:0}
+.spec-row .pn{font-weight:600;font-size:14px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.req{font:700 9.5px/1 var(--mono);letter-spacing:.06em;color:var(--ink-2);border:1px solid var(--line-strong);padding:2px 4px;border-radius:4px}
+.aliases{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.alias{font:11.5px/1.3 var(--mono);color:var(--ink-2);background:var(--surface-2);border:1px solid var(--line);border-radius:4px;padding:1px 5px}
+.limit{display:flex;align-items:center;gap:6px;justify-content:flex-end;flex-wrap:wrap}
+.limit .op{font:600 13px/1 var(--mono);color:var(--ink-2)}
+.limit .u{font-size:12.5px;color:var(--ink-3);min-width:40px}
+.limit .txt{font:600 13px/1.2 var(--mono)}
+.spec-live{grid-column:1 / -1;display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-3)}
+.units{padding:12px 14px}
+.units ul{margin:8px 0 0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:6px}
+
+/* ---------- sign-off ---------- */
+.so,.stack,.drift-grid{display:grid;gap:14px;grid-template-columns:minmax(0,1fr)}
+.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.so-card{padding:14px}
+.issues{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:6px}
+.issues li{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13.5px}
+.choices{display:grid;gap:8px;margin:10px 0 12px}
+.choice{position:relative;display:flex;gap:12px;align-items:center;text-align:left;padding:12px 14px;border-radius:var(--r);border:1.5px solid var(--line-strong);background:var(--card)}
+.choice .ci{flex:none;display:grid;place-items:center;width:34px;height:34px;border-radius:50%}
+.choice b{display:block;font-size:15px}
+.choice span{font-size:12.5px;color:var(--ink-2)}
+.choice.approve .ci{background:var(--ok-soft);color:var(--ok)}
+.choice.hold .ci{background:var(--warn-soft);color:var(--warn)}
+.choice.reject .ci{background:var(--bad-soft);color:var(--bad)}
+.choice.on.approve{border-color:var(--ok);background:var(--ok-soft)}
+.choice.on.hold{border-color:var(--warn);background:var(--warn-soft)}
+.choice.on.reject{border-color:var(--bad);background:var(--bad-soft)}
+.choice .sugg{position:absolute;top:-9px;right:10px;font:700 10px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;padding:4px 6px;border-radius:4px;background:var(--accent);color:var(--accent-ink)}
+textarea{width:100%;min-height:84px;padding:10px;border:1px solid var(--line-strong);border-radius:8px;background:var(--card);resize:vertical;font-size:14px}
+.sig-line{display:flex;align-items:center;gap:8px;margin:10px 0 12px;font-size:13px;color:var(--ink-2)}
+.check{display:flex;gap:8px;align-items:flex-start;font-size:13.5px;margin:10px 0 0}
+.check input{width:18px;height:18px;margin-top:1px;accent-color:var(--accent)}
+.banner{display:flex;gap:12px;align-items:center;padding:14px;border-radius:var(--r);border:1.5px solid}
+.banner .big{font:800 16px/1.1 var(--sans);letter-spacing:.04em}
+.banner.approve{background:var(--ok-soft);border-color:var(--ok);color:var(--ok)}
+.banner.hold{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
+.banner.reject{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.banner .by{color:var(--ink-2);font-size:13px}
+.sheet{padding:18px 16px}
+.sheet-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;border-bottom:2px solid var(--ink);padding-bottom:10px;margin-bottom:12px}
+.sheet-head h3{font-size:16px}
+.sheet table{width:100%;border-collapse:collapse;font-size:12.5px;margin:12px 0}
+.sheet th,.sheet td{text-align:left;padding:6px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+.sheet th{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3)}
+.sheet td.mono{white-space:nowrap}
+.trail{list-style:none;margin:8px 0 0;padding:0 0 0 14px;border-left:2px solid var(--line);display:grid;gap:8px}
+.trail li{position:relative;font-size:13px}
+.trail li::before{content:"";position:absolute;left:-20px;top:6px;width:10px;height:10px;border-radius:50%;background:var(--card);border:2px solid var(--line-strong)}
+.trail li.user::before{border-color:var(--accent);background:var(--accent)}
+.trail .t{font:12px/1 var(--mono);color:var(--ink-3);margin-right:6px}
+.trail .w{font-weight:600}
+.sheet .note{font-size:12px;color:var(--ink-3);margin-top:12px}
+.row-acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+
+/* ---------- drift ---------- */
+.chart-card{padding:14px}
+.chart-card h3{font-size:15px}
+.chart-wrap{position:relative;margin-top:8px}
+.chart-wrap svg{display:block;width:100%;height:auto;overflow:visible}
+.chart-wrap .grid line{stroke:var(--line);stroke-width:1}
+.chart-wrap .axis text{fill:var(--ink-3);font:11px var(--mono)}
+.tip{position:absolute;pointer-events:none;transform:translate(-50%,calc(-100% - 12px));background:var(--ink);color:var(--bg);padding:6px 9px;border-radius:6px;font-size:12px;white-space:nowrap;box-shadow:var(--shadow)}
+.tip b{font-family:var(--mono)}
+.alert{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:var(--r);background:var(--bad-soft);border:1px solid var(--bad-line);font-size:14px}
+.alert svg.i{color:var(--bad);margin-top:2px}
+.score{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.dtable{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+.dtable th,.dtable td{padding:5px 8px;border-bottom:1px solid var(--line);text-align:left}
+.dtable td:last-child,.dtable th:last-child{text-align:right}
+
+/* ---------- modal / toast ---------- */
+.scrim{position:fixed;inset:0;z-index:50;background:rgba(5,15,17,.5);display:grid;place-items:end center;padding:16px}
+.modal{width:100%;max-width:440px;padding:18px;border-radius:14px;background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow)}
+.modal h3{font-size:17px;margin-bottom:6px;display:flex;gap:8px;align-items:center}
+.modal p{margin:0 0 14px;color:var(--ink-2);font-size:14px}
+.modal .acts{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+#toast{position:fixed;left:50%;bottom:calc(var(--navbar) + 16px + env(safe-area-inset-bottom));transform:translate(-50%,20px);z-index:60;max-width:calc(100% - 32px);padding:10px 14px;border-radius:10px;background:var(--ink);color:var(--bg);font-size:13.5px;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media (max-width:559px){
+  .sheet td.mono{white-space:normal}
+  .sheet table .badge .lbl{display:none}
+  .sheet table .badge{padding:2px 5px}
+}
+body.has-nav #toast{bottom:calc(var(--navbar) + 16px + env(safe-area-inset-bottom))}
+#toast{bottom:16px}
+
+/* ---------- wider screens ---------- */
+@media (min-width:560px){
+  .tiles{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .kv{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .stats{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .score{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .paper{padding:24px 26px 26px;font-size:12px}
+  .paper .col-method{display:table-cell}
+  .choices{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .choice{flex-direction:column;align-items:flex-start;gap:8px}
+  .scrim{place-items:center}
+  .hero-card{padding:34px 34px}
+  .hero h1{font-size:34px}
+}
+@media (min-width:900px){
+  .tabs,.only-phone,.back-chip{display:none !important}
+  .split{grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);align-items:start}
+  .split .pane-results,.split .pane-cert{display:block !important}
+  .pane-cert{position:sticky;top:calc(var(--topbar) + var(--stepbar) + 12px)}
+  .cert-frame{max-height:calc(100dvh - var(--topbar) - var(--stepbar) - var(--navbar) - 36px);overflow:auto;overscroll-behavior:contain}
+  .so{grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);align-items:start}
+  .drift-grid{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);align-items:start}
+  .score{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kv{grid-template-columns:repeat(6,minmax(0,1fr))}
+  h2{font-size:24px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<script>
+/* =====================================================================
+   CoA Co-Pilot · clickable outreach mockup.
+   Everything below is hard-coded sample data. No upload, no AI, no backend.
+   ===================================================================== */
+
+// Where the "Contact" buttons go. Replace before deploying, e.g. 'mailto:you@yourdomain.com' or a booking link.
+const CONTACT_URL = '#contact';
+
+const d = (y, m, day) => new Date(y, m - 1, day);
+const DEMO_DATE = d(2026, 11, 16);          // fixed "today", so the shelf-life maths never changes
+const OFFICER = 'Priya Mehta';
+const OFFICER_ROLE = 'QA Officer';
+const FACTORY = 'Shree Nutrition Foods';
+const FACTORY_CITY = 'Chakan MIDC, Pune';
+const INGEST_ADDR = 'coa@shreenutrition.coapilot.in';
+
+/* ---------- the two incoming certificates (as printed by the suppliers) ---------- */
+const COAS = {
+  wpc: {
+    id: 'wpc', short: 'WPC 80', ingredient: 'Whey Protein Concentrate 80',
+    supplier: 'Arvana Dairy Ingredients Pvt. Ltd.', supShort: 'Arvana Dairy', initials: 'AD', color: '#1f3f7a',
+    address: 'Plot 14, GIDC Estate, Vitthal Udyognagar, Anand – 388121, Gujarat · FSSAI Lic. No. 100XXXXXXXX347',
+    from: 'Arvana Dairy QA', email: 'qa@arvanadairy.co.in', time: '09:41',
+    subject: 'CoA – WPC 80 – Batch AD-WPC-2611-047 – PO 4500-1182',
+    preview: 'Dear Sir/Madam, please find attached the CoA for today’s dispatch (vehicle GJ-23-AT-4471). Kindly acknowledge.',
+    file: 'CoA_AD-WPC-2611-047.pdf', size: '412 KB',
+    batch: 'AD-WPC-2611-047', po: 'PO 4500-1182', coaNo: 'ADI/QC/26/3381', qty: '2,000 kg (80 bags × 25 kg)',
+    mfg: d(2026, 11, 2), exp: d(2027, 11, 1), dateStyle: 'slash', skew: -0.45,
+    suggest: 'hold', record: 'IMR-2026-11-0412',
+    analyst: 'R. Patel, Chemist', approver: 'Dr. S. Iyer, Head – QC',
+    remark: 'The above product conforms to the specification.',
+    results: {
+      protein:  { clabel: 'Protein (on dry basis), %', method: 'IS 7219', sspec: 'Min. 80.0', raw: '81.4', value: 81.4, conf: 97 },
+      moisture: { clabel: 'Moisture, %', method: 'IS 16072', sspec: 'Max. 5.0', raw: '4.2', value: 4.2, conf: 98 },
+      fat:      { clabel: 'Fat, %', method: 'IS 11721', sspec: 'Max. 7.0', raw: '6.1', value: 6.1, conf: 96 },
+      ash:      { clabel: 'Total Ash, %', method: 'IS 1165', sspec: 'Max. 5.0', raw: '3.6', value: 3.6, conf: 95 },
+      lead:     { clabel: 'Lead (as Pb), ppb', method: 'AOAC 999.10', sspec: 'Max. 100', raw: '80', value: 0.08, conf: 95,
+                  conv: '80 ppb → 0.08 mg/kg' },
+      tpc:      { clabel: 'SPC, cfu/g', method: 'IS 5402', sspec: 'Max. 10 x 10³', raw: '12 x 10³', value: 12000, conf: 94,
+                  alias: 'SPC', note: '“12 x 10³” read as 12,000 cfu/g' },
+      ym:       { clabel: 'Yeast & Mould, cfu/g', method: 'IS 5403', sspec: 'Max. 100', raw: '5O', value: 50, conf: 62, smudge: true,
+                  ocr: 'The scan shows “5O”. Read as 50, but the second character is smudged.' },
+      ecoli:    { clabel: 'E. coli, per g', method: 'IS 5887-1', sspec: 'Negative', raw: 'Negative', norm: 'Negative', conf: 99 }
+    },
+    order: ['protein', 'moisture', 'fat', 'ash', 'x1', 'lead', 'tpc', 'ym', 'ecoli'],
+    extra: { x1: { clabel: 'Lactose, %', method: 'IS 7219', sspec: 'Max. 6.0', raw: '4.8' } }
+  },
+  tur: {
+    id: 'tur', short: 'Turmeric', ingredient: 'Turmeric Powder',
+    supplier: 'Kaveri Agro Spices Pvt. Ltd.', supShort: 'Kaveri Agro', initials: 'KA', color: '#2f5b1f',
+    address: 'SF No. 212/3, Perundurai Road, Erode – 638011, Tamil Nadu · FSSAI Lic. No. 124XXXXXXXX906',
+    from: 'Kaveri Agro Dispatch', email: 'dispatch@kaveriagro.in', time: '09:44',
+    subject: 'Turmeric Powder COA – Lot KAS-TUR-2610-112 / PO 4500-1190',
+    preview: 'PFA COA for the material dispatched today. LR no. 88213, 40 bags.',
+    file: 'COA_TURMERIC_KAS-TUR-2610-112.pdf', size: '1.2 MB',
+    batch: 'KAS-TUR-2610-112', po: 'PO 4500-1190', coaNo: 'KAS/QA/2026/0918', qty: '1,000 kg (40 bags × 25 kg)',
+    mfg: d(2026, 2, 3), exp: d(2028, 2, 2), dateStyle: 'dot', skew: 0.6,
+    suggest: 'reject', record: 'IMR-2026-11-0413',
+    analyst: 'K. Senthil, Lab Analyst', approver: 'M. Prabhu, Manager – QA',
+    remark: 'Sample complies with buyer specification.',
+    results: {
+      curcumin:   { clabel: 'Curcuminoids, %', method: 'ASTA 18.0', sspec: 'Min. 2.5', raw: '2.6', value: 2.6, conf: 96, alias: 'Curcuminoids' },
+      moisture:   { clabel: 'Moisture, %', method: 'ASTA 2.0', sspec: 'Max. 10.0', raw: '8.9', value: 8.9, conf: 97 },
+      ash:        { clabel: 'Total Ash, %', method: 'IS 1797', sspec: 'Max. 7.0', raw: '6.2', value: 6.2, conf: 96 },
+      aia:        { clabel: 'Acid Insoluble Ash, %', method: 'IS 1797', sspec: 'Max. 1.5', raw: '0.9', value: 0.9, conf: 95 },
+      lead:       { clabel: 'Lead, mg/kg', method: 'AOAC 2015.01', sspec: 'Max. 2.5', raw: '0.9', value: 0.9, conf: 93 },
+      afla:       { clabel: 'Total Aflatoxins (B1+B2+G1+G2), ppb', method: 'AOAC 991.31', sspec: 'Max. 15', raw: '4.2', value: 4.2, conf: 95,
+                    alias: 'Total Aflatoxins (B1+B2+G1+G2)', conv: '4.2 ppb → 4.2 µg/kg (1 ppb = 1 µg/kg)' },
+      salmonella: { clabel: 'Salmonella, per 25 g', method: 'ISO 6579-1', sspec: 'Absent', raw: 'Absent', norm: 'Negative', conf: 98,
+                    note: '“Absent” read as Negative' }
+    },
+    order: ['curcumin', 'moisture', 'ash', 'aia', 'x1', 'lead', 'afla', 'salmonella'],
+    extra: { x1: { clabel: 'Volatile Oil, % v/w', method: 'ASTA 5.0', sspec: 'Min. 2.5', raw: '3.1' } }
+  }
+};
+const COA_IDS = ['wpc', 'tur'];
+
+/* ---------- the factory's own spec library ---------- */
+const SPECS_ORIG = {
+  wpc: { code: 'RM-DY-014', name: 'Whey Protein Concentrate 80', version: 'v4 · approved 02 Sep 2026', params: [
+    { id: 'protein', name: 'Protein (dry basis)', type: 'min', min: 80, unit: '%', dp: 1, aliases: ['Protein (on dry basis)', 'Crude protein (DB)'] },
+    { id: 'moisture', name: 'Moisture', type: 'max', max: 5, unit: '%', dp: 1, aliases: ['Loss on drying', 'LOD'] },
+    { id: 'fat', name: 'Fat', type: 'max', max: 7, unit: '%', dp: 1, aliases: ['Crude fat'] },
+    { id: 'ash', name: 'Ash', type: 'max', max: 5, unit: '%', dp: 1, aliases: ['Total Ash'] },
+    { id: 'lead', name: 'Lead (Pb)', type: 'max', max: 0.1, unit: 'mg/kg', dp: 2, aliases: ['Lead (as Pb)', 'Pb'] },
+    { id: 'tpc', name: 'Total Aerobic Plate Count', short: 'TPC', type: 'max', max: 10000, unit: 'cfu/g', dp: 0, aliases: ['SPC', 'Total Plate Count', 'Aerobic Count'] },
+    { id: 'ym', name: 'Yeast & Mould', type: 'max', max: 100, unit: 'cfu/g', dp: 0, aliases: ['Y&M', 'Yeast and Mold'] },
+    { id: 'ecoli', name: 'E. coli', type: 'text', expect: 'Negative', unit: '/g', aliases: ['Escherichia coli'] },
+    { id: 'salmonella', name: 'Salmonella', type: 'text', expect: 'Negative', unit: '/25 g', aliases: ['Salmonella spp.'] },
+    { id: 'shelf', name: 'Shelf life left at receipt', type: 'min', min: 75, unit: '%', dp: 0, aliases: ['From Mfg. and Exp. dates'], derived: true }
+  ]},
+  tur: { code: 'RM-SP-031', name: 'Turmeric Powder', version: 'v2 · approved 18 Jun 2026', params: [
+    { id: 'curcumin', name: 'Curcumin', type: 'min', min: 3, unit: '%', dp: 1, aliases: ['Curcuminoids', 'Colouring matter as curcumin'] },
+    { id: 'moisture', name: 'Moisture', type: 'max', max: 10, unit: '%', dp: 1, aliases: ['Moisture content'] },
+    { id: 'ash', name: 'Total ash', type: 'max', max: 7, unit: '%', dp: 1, aliases: ['Total Ash'] },
+    { id: 'aia', name: 'Acid insoluble ash', type: 'max', max: 1.5, unit: '%', dp: 1, aliases: ['AIA'] },
+    { id: 'lead', name: 'Lead (Pb)', type: 'max', max: 2.5, unit: 'mg/kg', dp: 1, aliases: ['Pb'] },
+    { id: 'afla', name: 'Total aflatoxins', type: 'max', max: 15, unit: 'µg/kg', dp: 1, aliases: ['Total Aflatoxins (B1+B2+G1+G2)', 'Aflatoxin'] },
+    { id: 'sudan', name: 'Sudan dyes I–IV', type: 'text', expect: 'Not detected', unit: '', aliases: ['Sudan I-IV', 'Illegal dyes'] },
+    { id: 'salmonella', name: 'Salmonella', type: 'text', expect: 'Negative', unit: '/25 g', aliases: ['Salmonella spp.'] },
+    { id: 'shelf', name: 'Shelf life left at receipt', type: 'min', min: 75, unit: '%', dp: 0, aliases: ['From Mfg. and Exp. dates'], derived: true }
+  ]}
+};
+
+/* ---------- older certificates already in the inbox ---------- */
+const OLDER = [
+  { ing: 'Skimmed Milk Powder', sup: 'Narmada Milk Products', batch: 'NMP-SMP-1102', date: '15 Nov', st: 'approve' },
+  { ing: 'Maltodextrin DE 18', sup: 'Deccan Starch Co.', batch: 'DSC-MD-7781', date: '15 Nov', st: 'approve' },
+  { ing: 'Ashwagandha Root Extract 5%', sup: 'Vindhya Botanicals', batch: 'VB-ASH-0931', date: '14 Nov', st: 'hold' },
+  { ing: 'Cocoa Powder (alkalised)', sup: 'Konkan Cocoa Works', batch: 'KCW-CP-2210', date: '14 Nov', st: 'approve' },
+  { ing: 'Citric Acid Anhydrous', sup: 'Sahyadri Chemicals', batch: 'SC-CA-5512', date: '13 Nov', st: 'approve' },
+  { ing: 'Black Pepper Powder', sup: 'Malabar Spice Exports', batch: 'MSE-BP-0418', date: '12 Nov', st: 'reject' }
+];
+
+/* ---------- curcumin history for the drift chart (Kaveri Agro, last 12 lots) ---------- */
+const DRIFT = [
+  ['Dec', 3.62], ['Jan', 3.58], ['Feb', 3.55], ['Mar', 3.57], ['Apr', 3.46], ['May', 3.41],
+  ['Jun', 3.36], ['Jul', 3.30], ['Aug', 3.24], ['Sep', 3.15], ['Oct', 3.06], ['Nov', null] // Nov = today's lot
+];
+
+const STEPS = [
+  { id: 'email', label: 'Email' }, { id: 'inbox', label: 'Inbox' }, { id: 'check', label: 'Check' },
+  { id: 'spec', label: 'Specs' }, { id: 'signoff', label: 'Sign-off' }, { id: 'drift', label: 'Drift' }
+];
+const DEC = {
+  approve: { label: 'Approved', big: 'APPROVED · RELEASED', btn: 'Approve', desc: 'Release the lot to production', cls: 'green' },
+  hold:    { label: 'On hold', big: 'ON HOLD · QUARANTINE', btn: 'Hold / Quarantine', desc: 'Keep the lot in quarantine', cls: 'yellow' },
+  reject:  { label: 'Rejected', big: 'REJECTED', btn: 'Reject', desc: 'Return the lot to the supplier', cls: 'red' }
+};
+const HINTS = {
+  email: 'Tap <b>Forward to CoA Co-Pilot</b> to send both certificates in.',
+  inbox: 'Tap the <b>WPC 80</b> certificate at the top.',
+  check: 'Tap a <b>red</b> result to see why it failed, then find the same line on the original certificate.',
+  spec: 'Try tightening <b>Moisture</b> to max <b>4.0</b>. The WPC 80 result turns red straight away.',
+  signoff: 'Put WPC 80 <b>on hold</b> until the Salmonella report comes in, then <b>reject</b> the turmeric.',
+  drift: 'Today’s failure didn’t come out of nowhere: this supplier had been drifting for months.'
+};
+
+/* ---------- state ---------- */
+const clone = o => JSON.parse(JSON.stringify(o));
+function freshState() {
+  return {
+    step: 'intro', seen: {}, coa: 'wpc', sel: null, tab: 'results', inboxFilter: 'all', specView: 'wpc',
+    ingest: -1, edits: { wpc: {}, tur: {} }, verified: { wpc: {}, tur: {} }, requested: { wpc: {}, tur: {} },
+    specs: clone(SPECS_ORIG), choice: {}, remarks: {}, remarksTouched: {}, notify: { tur: true, wpc: true },
+    decisions: {}, log: [], hintsOff: {}, did: {}, modal: null, driftTable: false, startedAt: null, finishedAt: null
+  };
+}
+let S = freshState();
+
+/* ---------- helpers ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const isDesktop = () => matchMedia('(min-width: 900px)').matches;
+const fmt = (n, dp = 1) => Number(n).toLocaleString('en-IN', { minimumFractionDigits: dp, maximumFractionDigits: Math.max(dp, 3) });
+const fmtDate = dt => dt.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+const coaDate = (dt, style) => {
+  const dd = String(dt.getDate()).padStart(2, '0'), mm = String(dt.getMonth() + 1).padStart(2, '0'), yy = dt.getFullYear();
+  return style === 'dot' ? `${dd}.${mm}.${yy}` : `${dd}/${mm}/${yy}`;
+};
+const nowIST = () => new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Kolkata' });
+const shelfPct = c => Math.round((c.exp - DEMO_DATE) / (c.exp - c.mfg) * 100);
+const specOf = (coa, pid) => S.specs[coa].params.find(p => p.id === pid);
+const specText = p => p.type === 'min' ? `≥ ${fmt(p.min, p.dp)} ${p.unit}` : p.type === 'max' ? `≤ ${fmt(p.max, p.dp)} ${p.unit}` : `${p.expect}${p.unit ? ' ' + p.unit : ''}`;
+
+const I = {
+  check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+  x: '<path d="M6 6l12 12M18 6L6 18"/>',
+  alert: '<path d="M12 3.5l9.5 16.5h-19z"/><path d="M12 10v4.5M12 17.5v.5"/>',
+  minus: '<circle cx="12" cy="12" r="9"/><path d="M8 12h8"/>',
+  pause: '<circle cx="12" cy="12" r="9"/><path d="M10 9v6M14 9v6"/>',
+  mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5l8.5 6 8.5-6"/>',
+  clip: '<path d="M20 11.5l-8 8a5 5 0 01-7-7l8.5-8.5a3.3 3.3 0 014.7 4.7L9.7 17.2a1.7 1.7 0 01-2.4-2.4L15 7"/>',
+  right: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+  left: '<path d="M19 12H5M11 6l-6 6 6 6"/>',
+  doc: '<path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/>',
+  eye: '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  link: '<path d="M10 14a4 4 0 005.7 0l3.6-3.6a4 4 0 00-5.7-5.7L12 6.3"/><path d="M14 10a4 4 0 00-5.7 0l-3.6 3.6a4 4 0 005.7 5.7l1.6-1.6"/>',
+  swap: '<path d="M7 7h11l-3-3M17 17H6l3 3"/>',
+  ocr: '<path d="M4 8V5a1 1 0 011-1h3M16 4h3a1 1 0 011 1v3M20 16v3a1 1 0 01-1 1h-3M8 20H5a1 1 0 01-1-1v-3"/><path d="M8 12h8"/>',
+  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.5"/>',
+  cal: '<rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
+  send: '<path d="M21 3L10 14M21 3l-7 18-4-7-7-4z"/>',
+  upload: '<path d="M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3"/>',
+  sig: '<path d="M3 17c3-1 4-9 6-9s0 9 2 9 2-5 4-5 1 4 3 4 3-2 3-2"/>',
+  down: '<path d="M12 4v12M7 11l5 5 5-5M4 20h16"/>',
+  trend: '<path d="M3 7l6 6 4-4 8 8"/><path d="M15 17h6v-6"/>',
+  spark: '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M6 18l2.5-2.5M15.5 8.5L18 6"/>'
+};
+const ic = (n, extra = '') => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true" ${extra}>${I[n]}</svg>`;
+const STATUS_ICON = { red: 'x', yellow: 'alert', green: 'check' };
+const badge = (s, label) => `<span class="badge b-${s}" title="${esc(label)}">${ic(STATUS_ICON[s] || 'minus')}<span class="lbl">${esc(label)}</span></span>`;
+const LOGO = `<svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><rect width="26" height="26" rx="7" fill="var(--accent)"/><path d="M10 5.5h6M11 5.5v5.2L6.6 18.4A1.7 1.7 0 008.1 21h9.8a1.7 1.7 0 001.5-2.6L15 10.7V5.5" fill="none" stroke="var(--accent-ink)" stroke-width="1.8" stroke-linejoin="round"/><path d="M9.6 16.2l2.2 2.1 4.4-4.4" fill="none" stroke="var(--accent-ink)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+function toast(msg) {
+  const t = $('#toast'); t.innerHTML = msg; t.classList.add('show');
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 2600);
+}
+function log(coa, text, who = OFFICER, time = nowIST()) { S.log.push({ coa, text, who, time, user: who !== 'System' }); }
+
+/* ---------- evaluation: compare each result with the factory's spec ---------- */
+function resultOf(coa, pid) {
+  const c = COAS[coa];
+  if (pid === 'shelf') { const v = shelfPct(c); return { clabel: 'Mfg. / Exp. date', raw: `${coaDate(c.mfg, c.dateStyle)} – ${coaDate(c.exp, c.dateStyle)}`, value: v, conf: 99, derived: true }; }
+  const r = c.results[pid];
+  if (!r) return null;
+  const e = S.edits[coa][pid];
+  return e !== undefined ? { ...r, value: e.to, edited: e } : r;
+}
+function evalRow(coa, p, ignoreVerify = false) {
+  const r = resultOf(coa, p.id);
+  if (!r) return { s: 'red', reason: 'Missing test', r: null };
+  const pass = p.type === 'min' ? r.value >= p.min : p.type === 'max' ? r.value <= p.max : r.norm === p.expect;
+  if (!pass) return { s: 'red', reason: p.id === 'shelf' ? 'Below rule' : 'Out of spec', r };
+  const v = !ignoreVerify && S.verified[coa][p.id];
+  if (!v && r.conv) return { s: 'yellow', reason: 'Unit converted', r };
+  if (!v && r.conf < 80) return { s: 'yellow', reason: 'Low confidence', r };
+  return { s: 'green', reason: v ? 'Verified' : 'Within spec', r };
+}
+function counts(coa, ignoreVerify = false) {
+  const c = { red: 0, yellow: 0, green: 0 };
+  S.specs[coa].params.forEach(p => c[evalRow(coa, p, ignoreVerify).s]++);
+  return c;
+}
+const valText = (p, r) => !r ? 'Not reported' : p.type === 'text' ? r.norm : `${fmt(r.value, p.dp)} ${p.unit}`;
+function issueText(coa, p, ev) {
+  const nm = p.short || p.name;
+  if (!ev.r) return `${nm} not reported`;
+  if (ev.s === 'yellow') return `${nm} needs a visual check (${ev.reason.toLowerCase()})`;
+  return `${nm} ${valText(p, ev.r)} vs spec ${specText(p)}`;
+}
+function openIssues(coa) {
+  return S.specs[coa].params.map(p => ({ p, ev: evalRow(coa, p) })).filter(x => x.ev.s !== 'green')
+    .sort((a, b) => (a.ev.s === 'red' ? 0 : 1) - (b.ev.s === 'red' ? 0 : 1));
+}
+function suggested(coa) {
+  const c = counts(coa);
+  if (c.red) return COAS[coa].suggest;
+  return c.yellow ? 'hold' : 'approve';
+}
+function defaultRemarks(coa, dec) {
+  const reds = openIssues(coa).filter(x => x.ev.s === 'red').map(x => issueText(coa, x.p, x.ev));
+  if (dec === 'approve') return reds.length ? `Released as QA override. Open: ${reds.join('; ')}.` : 'All results reviewed and within specification.';
+  if (dec === 'hold') {
+    const miss = openIssues(coa).filter(x => !x.ev.r).map(x => x.p.name);
+    return `Quarantine pending ${miss.length ? miss.join(' and ') + ' report from supplier' : 'supplier clarification'}.${reds.length ? ' Open: ' + reds.join('; ') + '.' : ''} Retain sample for in-house re-test.`;
+  }
+  return `Rejected: ${reds.length ? reds.join('; ') : 'see results'}. Return lot to supplier.`;
+}
+function inboxStatus(coa) { return S.decisions[coa] ? S.decisions[coa].d : 'review'; }
+
+/* ---------- navigation ---------- */
+function ingestNow() {
+  if (S.ingest >= 5) return;
+  S.ingest = 5; seedLog();
+}
+function seedLog() {
+  if (S.log.some(l => l.seed)) return;
+  COA_IDS.forEach(id => {
+    const c = COAS[id], sp = S.specs[id], k = counts(id, true);
+    const n = Object.keys(c.results).length + Object.keys(c.extra).length;
+    const add = t => S.log.push({ coa: id, who: 'System', time: c.time, text: t, seed: true });
+    add(`Received by email from ${c.email} (${c.file})`);
+    add(`Read ${n} test results and 6 header fields from the PDF`);
+    Object.entries(c.results).forEach(([pid, r]) => { if (r.alias) add(`Matched “${r.alias}” to ${specOf(id, pid).name} (alias list)`); });
+    Object.entries(c.results).forEach(([pid, r]) => { if (r.conv) add(`Converted ${specOf(id, pid).name}: ${r.conv}`); });
+    add(`Checked against spec ${sp.code}: ${k.red} red, ${k.yellow} yellow, ${k.green} green`);
+  });
+}
+function go(step) {
+  if (!['intro', 'email', 'done'].includes(step)) ingestNow();
+  if (step === 'check') { S.tab = 'results'; }
+  S.step = step; S.seen[step] = true; S.modal = null;
+  render(); window.scrollTo(0, 0);
+}
+function stepIndex() { return STEPS.findIndex(s => s.id === S.step); }
+
+/* =====================================================================
+   RENDER
+   ===================================================================== */
+function render() {
+  const app = $('#app');
+  let html = topBar();
+  if (S.step === 'intro') html += `<main>${viewIntro()}</main>`;
+  else if (S.step === 'done') html += `<main>${viewDone()}</main>`;
+  else html += stepBar() + `<main>${({ email: viewEmail, inbox: viewInbox, check: viewCheck, spec: viewSpec, signoff: viewSignoff, drift: viewDrift })[S.step]()}</main>` + navBar();
+  if (S.modal) html += viewModal();
+  app.innerHTML = html;
+  document.body.classList.toggle('has-nav', !['intro', 'done'].includes(S.step));
+  afterRender();
+}
+
+function topBar() {
+  return `<header class="top">
+    <div class="brand">${LOGO}<span>CoA Co-Pilot</span><span class="tag">Demo</span></div>
+    <div class="top-actions">
+      ${S.step !== 'intro' ? `<button class="btn ghost sm" data-act="reset" title="Start the demo again">Reset</button>` : ''}
+      <a class="btn primary sm" href="${CONTACT_URL}" data-act="contact">Contact</a>
+    </div></header>`;
+}
+function stepBar() {
+  return `<nav class="steps" aria-label="Demo steps">${STEPS.map((s, i) => `${i ? '<span class="step-sep"></span>' : ''}<button class="step ${S.step === s.id ? 'on' : S.seen[s.id] ? 'seen' : ''}" data-act="go" data-step="${s.id}" ${S.step === s.id ? 'aria-current="step"' : ''}><span class="n">${i + 1}</span>${s.label}</button>`).join('')}</nav>`;
+}
+function navBar() {
+  const i = stepIndex(), prev = STEPS[i - 1], next = STEPS[i + 1];
+  return `<div class="nav">
+    <button class="btn" data-act="go" data-step="${prev ? prev.id : 'intro'}">${ic('left')}${prev ? prev.label : 'Intro'}</button>
+    <span class="where">Step ${i + 1} of ${STEPS.length}</span>
+    <button class="btn primary" data-act="go" data-step="${next ? next.id : 'done'}">${next ? next.label : 'Finish'}${ic('right')}</button>
+  </div>`;
+}
+function hint(step, show = true) {
+  if (!show || S.hintsOff[step]) return '';
+  return `<div class="hint" role="note"><span class="pulse-dot" aria-hidden="true"></span><div>${HINTS[step]}</div><button class="x" data-act="hint-off" data-step="${step}" aria-label="Dismiss hint">×</button></div>`;
+}
+const hintOn = (step, cond = true) => cond && !S.hintsOff[step];
+
+/* ---------- intro ---------- */
+function viewIntro() {
+  return `<section class="hero"><div class="card hero-card">
+    <div class="eyebrow">Interactive demo · about 2 minutes</div>
+    <h1>Check a supplier CoA against your own specs, in seconds.</h1>
+    <p class="lede">You’re <b>${OFFICER}</b>, ${OFFICER_ROLE} at <b>${FACTORY}</b>, Pune. Two supplier certificates just arrived by email: whey protein and turmeric.</p>
+    <ol>
+      <li><span class="n">1</span><span>Certificates are forwarded in and read automatically. Nobody types anything.</span></li>
+      <li><span class="n">2</span><span>Every result is checked against <b>your</b> spec, side by side with the original PDF.</span></li>
+      <li><span class="n">3</span><span>You sign off, and an FSSAI-ready audit record is saved.</span></li>
+    </ol>
+    <div class="cta"><button class="btn primary lg" data-act="start">Start the demo ${ic('right')}</button></div>
+    <p class="fine">Sample data only. All companies, people and results are fictional. No upload, no sign-up.</p>
+  </div></section>`;
+}
+
+/* ---------- 1. email ---------- */
+function viewEmail() {
+  const sending = S.ingest >= 0;
+  const procSteps = ['Received 2 emails with PDF attachments', 'Reading the scanned pages (OCR)', 'Pulling out batch, mfg. and expiry dates',
+    'Matching supplier test names to your parameters', 'Converting units and checking against your specs'];
+  const tot = COA_IDS.reduce((a, id) => { const k = counts(id, true); a.red += k.red; a.yellow += k.yellow; a.green += k.green; return a; }, { red: 0, yellow: 0, green: 0 });
+  return `${hint('email', S.ingest < 0)}
+  <h2>Supplier emails arrive</h2>
+  <p class="sub">Suppliers keep emailing CoAs the way they do today. A forwarding rule sends them to CoA Co-Pilot, so there’s no new portal for anyone to learn.</p>
+  <div class="card mail">
+    <div class="mail-head">${ic('mail')} Inbox · qa@shreenutrition.in</div>
+    ${COA_IDS.map(id => { const c = COAS[id]; return `<div class="mail-item ${sending ? 'sent' : ''}">
+      <div class="avatar" style="background:${c.color}">${c.initials}</div>
+      <div style="min-width:0;flex:1">
+        <div class="from">${esc(c.from)} <span>${sending ? `${ic('check')} Forwarded` : c.time}</span></div>
+        <div class="subj">${esc(c.subject)}</div>
+        <div class="prev">${esc(c.preview)}</div>
+        <div class="att">${ic('clip')} <b>PDF</b> ${esc(c.file)} · ${c.size}</div>
+      </div></div>`; }).join('')}
+  </div>
+  <div class="card fwd">
+    <div><div class="eyebrow" style="margin-bottom:6px">Forwarding rule</div>
+    <code>If subject contains “CoA” → forward to ${INGEST_ADDR}</code></div>
+    ${sending ? '' : `<div><button class="btn primary lg ${hintOn('email') ? 'pulse' : ''}" data-act="ingest">${ic('send')} Forward to CoA Co-Pilot</button></div>`}
+  </div>
+  ${sending ? `<div class="card proc" aria-live="polite"><ul>
+    ${procSteps.map((t, i) => `<li class="${S.ingest > i ? 'done' : S.ingest === i ? 'run' : ''}"><span class="st">${S.ingest > i ? ic('check') : ''}</span>${t}</li>`).join('')}
+    </ul>
+    ${S.ingest >= 5 ? `<div class="ready"><div><b>2 certificates, 19 tests checked</b><div class="fine"><span class="dot red"></span>${tot.red} red · <span class="dot yellow"></span>${tot.yellow} yellow · <span class="dot green"></span>${tot.green} green</div></div>
+      <button class="btn primary" data-act="go" data-step="inbox">Open the inbox ${ic('right')}</button></div>` : ''}
+  </div>` : ''}`;
+}
+
+/* ---------- 2. inbox ---------- */
+function viewInbox() {
+  const items = [
+    ...COA_IDS.map(id => ({ id, ing: COAS[id].ingredient, sup: COAS[id].supplier, batch: COAS[id].batch, date: `Today ${COAS[id].time}`, st: inboxStatus(id), fresh: true })),
+    ...OLDER
+  ];
+  const n = st => items.filter(x => x.st === st).length;
+  const F = S.inboxFilter, shown = items.filter(x => F === 'all' || x.st === F);
+  const stBadge = st => st === 'review' ? badge('red', 'Needs review') : badge(DEC[st].cls, DEC[st].label);
+  const chips = [['all', 'All'], ['review', 'Needs review'], ['hold', 'On hold'], ['approve', 'Approved'], ['reject', 'Rejected']];
+  return `${hint('inbox', !S.did.openedCoa)}
+  <h2>Incoming certificates</h2>
+  <p class="sub">Every CoA lands in one place, already checked. The ones that need you are at the top.</p>
+  <div class="tiles">
+    <div class="tile"><b>${n('review')}</b><span><span class="dot red"></span>Needs review</span></div>
+    <div class="tile"><b>${n('hold')}</b><span><span class="dot yellow"></span>On hold</span></div>
+    <div class="tile"><b>${n('approve')}</b><span><span class="dot green"></span>Approved</span></div>
+    <div class="tile"><b>${n('reject')}</b><span>${ic('x')}Rejected</span></div>
+  </div>
+  <div class="chips" role="tablist">${chips.map(([k, l]) => `<button class="chip ${F === k ? 'on' : ''}" data-act="filter" data-f="${k}" role="tab" aria-selected="${F === k}">${l}</button>`).join('')}</div>
+  <div class="card list">
+    ${shown.length ? shown.map(x => {
+      const k = x.fresh ? counts(x.id) : null;
+      return `<button class="li ${x.fresh && x.st === 'review' ? 'new' : ''} ${x.fresh && x.id === 'wpc' && hintOn('inbox', !S.did.openedCoa) ? 'pulse' : ''}" data-act="${x.fresh ? 'open' : 'old'}" ${x.fresh ? `data-coa="${x.id}"` : ''}>
+        <span class="ic">${ic('doc')}</span>
+        <span class="mid">
+          <span class="ing">${esc(x.ing)} ${x.fresh && x.st === 'review' ? '<span class="new-tag">NEW</span>' : ''}</span>
+          <span class="meta">${esc(x.sup)} · <span class="mono">${x.batch}</span></span>
+          ${k ? `<span class="flags"><span><span class="dot red"></span>${k.red} red</span><span><span class="dot yellow"></span>${k.yellow} yellow</span><span><span class="dot green"></span>${k.green} green</span></span>` : ''}
+        </span>
+        <span class="right">${stBadge(x.st)}<span class="date">${x.date}</span></span>
+      </button>`; }).join('') : `<div style="padding:18px;color:var(--ink-3)">Nothing here.</div>`}
+  </div>`;
+}
+
+/* ---------- shared: CoA switcher ---------- */
+function coaSwitch() {
+  return `<div class="seg" role="tablist" aria-label="Certificate">${COA_IDS.map(id => {
+    const dec = S.decisions[id], k = counts(id);
+    const tail = dec ? `<span class="badge b-${DEC[dec.d].cls}" style="padding:0 6px">${ic(STATUS_ICON[DEC[dec.d].cls])}</span>` : k.red ? `<span class="cnt" aria-label="${k.red} red">${k.red}</span>` : '';
+    return `<button class="${S.coa === id ? 'on' : ''}" data-act="coa" data-coa="${id}" role="tab" aria-selected="${S.coa === id}">${COAS[id].short}${tail}</button>`;
+  }).join('')}</div>`;
+}
+
+/* ---------- 3. split-screen check ---------- */
+function viewCheck() {
+  const id = S.coa, c = COAS[id], sp = S.specs[id], k = counts(id), pct = shelfPct(c);
+  const selP = S.sel ? specOf(id, S.sel) : null, selEv = selP ? evalRow(id, selP) : null;
+  return `${hint('check', !S.did.selected)}
+  ${coaSwitch()}
+  <div class="card batch">
+    <div class="batch-top"><div><h3>${esc(c.ingredient)}</h3><div class="who">${esc(c.supplier)}</div></div>
+      <div class="summary-pills">${k.red ? badge('red', k.red + ' red') : ''}${k.yellow ? badge('yellow', k.yellow + ' yellow') : ''}${badge('green', k.green + ' green')}</div></div>
+    <dl class="kv" style="margin:0">
+      <div><dt>Batch</dt><dd class="mono">${c.batch}</dd></div>
+      <div><dt>PO</dt><dd class="mono">${c.po}</dd></div>
+      <div><dt>Mfg.</dt><dd>${fmtDate(c.mfg)}</dd></div>
+      <div><dt>Expiry</dt><dd>${fmtDate(c.exp)}</dd></div>
+      <div><dt>Shelf life left</dt><dd class="mono" style="color:${pct < specOf(id, 'shelf').min ? 'var(--bad)' : 'inherit'};font-weight:600">${pct}%</dd></div>
+      <div><dt>Spec</dt><dd class="mono">${sp.code}</dd></div>
+    </dl>
+  </div>
+  <div class="tabs" role="tablist">
+    <button class="${S.tab === 'results' ? 'on' : ''}" data-act="tab" data-tab="results" role="tab" aria-selected="${S.tab === 'results'}">Results vs spec</button>
+    <button class="${S.tab === 'cert' ? 'on' : ''}" data-act="tab" data-tab="cert" role="tab" aria-selected="${S.tab === 'cert'}">Original certificate</button>
+  </div>
+  <div class="split" data-tab="${S.tab}">
+    <div class="pane-results">
+      <div class="card results">
+        <div class="results-head"><span>Parameter · your spec</span><span>CoA result</span></div>
+        ${resultGroups(id)}
+      </div>
+      <div class="row-acts"><button class="btn" data-act="go" data-step="signoff">${ic('sig')}Go to sign-off</button></div>
+    </div>
+    <div class="pane-cert">
+      <div class="cert-frame" id="certFrame">
+        <div class="cert-cap"><span>${ic('doc')} ${esc(c.file)}</span><span>Page 1 of 1</span></div>
+        ${paper(id)}
+      </div>
+    </div>
+  </div>
+  ${S.tab === 'cert' && selP ? `<button class="back-chip" data-act="tab" data-tab="results">${ic('left')}<span>Results · ${esc(selP.name)}</span>${badge(selEv.s, selEv.reason)}</button>` : ''}`;
+}
+// Results that need attention first (red, then yellow), then everything within spec.
+function resultGroups(id) {
+  const rank = { red: 0, yellow: 1, green: 2 };
+  const ps = S.specs[id].params.map((p, i) => ({ p, i, s: evalRow(id, p).s }))
+    .sort((a, b) => rank[a.s] - rank[b.s] || a.i - b.i);
+  const need = ps.filter(x => x.s !== 'green'), ok = ps.filter(x => x.s === 'green');
+  return (need.length ? `<div class="group">Needs your attention · ${need.length}</div>` + need.map(x => resultRow(id, x.p)).join('') : '')
+    + (ok.length ? `<div class="group">Within spec · ${ok.length}</div>` + ok.map(x => resultRow(id, x.p)).join('') : '');
+}
+function resultRow(id, p) {
+  const ev = evalRow(id, p), r = ev.r, sel = S.sel === p.id;
+  const val = !r ? `<span class="val miss">Not reported</span>` : p.type === 'text' ? `<span class="val">${esc(r.norm)}</span>` : `<span class="val mono">${fmt(r.value, p.dp)} <span class="u">${esc(p.unit)}</span></span>`;
+  const pulse = hintOn('check', !S.did.selected) && id === S.coa && p.id === firstRed(id) ? 'pulse' : '';
+  return `<button class="row s-${ev.s} ${sel ? 'sel' : ''} ${pulse}" data-act="sel" data-p="${p.id}" aria-expanded="${sel}">
+    <span class="main"><span class="pn" style="display:block">${esc(p.name)}</span><span class="ps" style="display:block">Spec ${esc(specText(p))}</span></span>
+    <span class="rv">${val}${badge(ev.s, ev.reason)}</span>
+  </button>${sel ? rowDetail(id, p, ev) : ''}`;
+}
+const firstRed = id => (S.specs[id].params.find(p => evalRow(id, p).s === 'red') || {}).id;
+function rowDetail(id, p, ev) {
+  const c = COAS[id], r = ev.r, sp = S.specs[id], lines = [];
+  if (!r) {
+    lines.push([ 'alert', `Not on the certificate. <b>${esc(p.name)}</b> is a mandatory test in your spec ${sp.code}.` ]);
+  } else if (p.id === 'shelf') {
+    lines.push([ 'cal', `Mfg. ${fmtDate(c.mfg)} · Exp. ${fmtDate(c.exp)} → <b>${r.value}%</b> of shelf life left today.` ]);
+    lines.push([ 'info', `Your receiving rule: at least ${p.min}% left.` ]);
+  } else {
+    lines.push([ 'eye', `On the certificate: <q>${esc(r.clabel)}</q> = <q>${esc(r.raw)}</q>` ]);
+    if (r.alias) lines.push([ 'link', `The supplier calls it “${esc(r.alias)}”. Matched to <b>${esc(p.name)}</b> from your alias list.` ]);
+    if (r.conv) lines.push([ 'swap', `Unit converted: ${esc(r.conv)}` ]);
+    if (r.note) lines.push([ 'info', esc(r.note) ]);
+    if (r.ocr) lines.push([ 'ocr', esc(r.ocr) ]);
+    if (r.sspec) lines.push([ 'doc', `Supplier’s own limit: ${esc(r.sspec)}. <b>Your</b> limit: ${esc(specText(p))}.` ]);
+    lines.push([ 'spark', `Read confidence: <b class="mono">${r.conf}%</b>${r.conf < 80 ? ' (below 80%, so it’s flagged)' : ''}` ]);
+    if (r.edited) lines.push([ 'sig', `Corrected by ${esc(r.edited.by)} at ${r.edited.time}: ${fmt(r.edited.from, p.dp)} → ${fmt(r.edited.to, p.dp)} ${esc(p.unit)} (logged)` ]);
+  }
+  const ver = S.verified[id][p.id];
+  let acts = '';
+  if (!r) {
+    const req = S.requested[id][p.id];
+    acts += req ? `<span class="verified">${ic('check')} Report requested from ${esc(c.supShort)} at ${req}</span>`
+                : `<button class="btn sm" data-act="request" data-p="${p.id}">${ic('send')} Ask supplier for the report</button>`;
+  } else if (ver) {
+    acts += `<span class="verified">${ic('check')} Checked by ${OFFICER} at ${ver}</span>`;
+  } else if (ev.s === 'yellow' && p.type !== 'text') {
+    acts += `<label class="edit"><span class="fine">Value</span><input id="editVal" inputmode="decimal" value="${r.value}" aria-label="Correct value in ${esc(p.unit)}"><span class="fine">${esc(p.unit)}</span></label>
+             <button class="btn primary sm" data-act="verify" data-p="${p.id}">${ic('check')} Confirm</button>`;
+  }
+  acts += `<button class="btn sm only-phone" data-act="showcert">${ic('eye')} See it on the certificate</button>`;
+  return `<div class="detail"><ul>${lines.map(([i, t]) => `<li>${ic(i)}<span>${t}</span></li>`).join('')}</ul><div class="acts">${acts}</div></div>`;
+}
+
+/* the supplier's certificate, drawn like a scan */
+function paper(id) {
+  const c = COAS[id], sel = S.sel;
+  const selP = sel ? specOf(id, sel) : null, selEv = selP ? evalRow(id, selP) : null;
+  const hl = key => sel === key ? `hl h-${selEv.s}` : '';
+  const rows = c.order.map((key, i) => {
+    const r = c.results[key] || c.extra[key];
+    return `<tr class="${hl(key)}" data-p="${key}"><td>${i + 1}</td><td>${esc(r.clabel)}</td><td class="col-method">${esc(r.method)}</td><td>${esc(r.sspec)}</td><td class="res"><span class="${r.smudge ? 'smudge' : ''}">${esc(r.raw)}</span></td></tr>`;
+  }).join('');
+  const missing = sel && selP && !selEv.r ? `<tr class="missing" data-p="${sel}"><td colspan="5">${esc(selP.name)}: not reported on this certificate</td></tr>` : '';
+  const logo = id === 'wpc'
+    ? `<svg viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="20" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M13 27c3-9 6-13 9-13s6 4 9 13" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M12 30h20" stroke="currentColor" stroke-width="2.5"/></svg>`
+    : `<svg viewBox="0 0 44 44" aria-hidden="true"><rect x="3" y="3" width="38" height="38" rx="6" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M22 34c-7-4-9-11-6-19 6 2 9 8 6 19zM22 34c6-3 9-9 7-16-5 2-8 7-7 16z" fill="currentColor" opacity=".85"/></svg>`;
+  const ink = id === 'wpc' ? '#2b3f9e' : '#6b2b8e';
+  return `<div class="paper ${id}" style="transform:rotate(${c.skew}deg)" aria-label="Original supplier certificate (sample)">
+    <span class="scanline">SCAN ${id === 'wpc' ? '16/11/2026 09:39' : '16-11-26 09:43'}</span>
+    <div class="lh">${logo}<div><div class="lh-name">${esc(c.supplier.toUpperCase())}</div><div class="lh-addr">${esc(c.address)}</div></div></div>
+    <div class="doc-title">CERTIFICATE OF ANALYSIS</div>
+    <table class="meta"><tbody>
+      <tr><td>Product</td><td>${esc(c.ingredient)}</td><td>CoA No.</td><td>${c.coaNo}</td></tr>
+      <tr><td>Batch / Lot No.</td><td>${c.batch}</td><td>Quantity</td><td>${c.qty}</td></tr>
+      <tr><td>Mfg. Date</td><td class="${sel === 'shelf' ? `hl h-${selEv.s}` : ''}">${coaDate(c.mfg, c.dateStyle)}</td><td>Exp. Date</td><td class="${sel === 'shelf' ? `hl h-${selEv.s}` : ''}" data-p="shelf">${coaDate(c.exp, c.dateStyle)}</td></tr>
+      <tr><td>Customer</td><td>${FACTORY}, Pune</td><td>PO No.</td><td>${c.po.replace('PO ', '')}</td></tr>
+    </tbody></table>
+    <table class="tests"><thead><tr><th>S.No</th><th>Test Parameter</th><th class="col-method">Method</th><th>Specification</th><th>Result</th></tr></thead>
+      <tbody>${rows}${missing}</tbody></table>
+    <div class="remark">Remarks: ${esc(c.remark)}</div>
+    <div class="signs">
+      <div class="s"><svg class="sig" viewBox="0 0 110 34"><path d="M4 24c8-14 12-18 15-12s-6 14 2 9 10-17 14-13-4 15 3 11 8-9 12-6 4 6 10 2 10-8 16-6" fill="none" stroke="${ink}" stroke-width="1.6" stroke-linecap="round"/></svg>Analysed by: ${esc(c.analyst)}</div>
+      <svg class="stamp" viewBox="0 0 100 100" aria-hidden="true"><defs><path id="sp-${id}" d="M50 50 m-36 0 a36 36 0 1 1 72 0 a36 36 0 1 1 -72 0"/></defs>
+        <circle cx="50" cy="50" r="46" fill="none" stroke="${ink}" stroke-width="2.5"/><circle cx="50" cy="50" r="27" fill="none" stroke="${ink}" stroke-width="1.5"/>
+        <text font-size="9.5" font-weight="700" fill="${ink}" letter-spacing="1.2" font-family="Arial"><textPath href="#sp-${id}">${esc(c.supShort.toUpperCase())} · QUALITY CONTROL ·</textPath></text>
+        <text x="50" y="47" text-anchor="middle" font-size="10" font-weight="800" fill="${ink}" font-family="Arial">QC</text>
+        <text x="50" y="59" text-anchor="middle" font-size="8" font-weight="700" fill="${ink}" font-family="Arial">PASSED</text></svg>
+      <div class="s" style="text-align:right"><svg class="sig" viewBox="0 0 110 34" style="margin-left:auto"><path d="M6 20c6-8 14-14 18-9s-10 12-4 12 14-16 20-14-6 12 0 11 12-10 18-9 2 7 8 5 14-6 30-4" fill="none" stroke="${ink}" stroke-width="1.6" stroke-linecap="round"/></svg>Approved by: ${esc(c.approver)}</div>
+    </div>
+    <div class="foot">This is a system generated certificate · ${id === 'wpc' ? 'ADI/QC/F-07 Rev. 03' : 'KAS-QA-F12 Issue 2'}</div>
+  </div>`;
+}
+
+/* ---------- 4. spec library ---------- */
+function viewSpec() {
+  const id = S.specView, sp = S.specs[id], c = COAS[id];
+  const changed = JSON.stringify(S.specs) !== JSON.stringify(SPECS_ORIG);
+  return `${hint('spec', !S.did.specEdit)}
+  <h2>Your spec library</h2>
+  <p class="sub">The limits come from your own specs, never the supplier’s. Change a limit and today’s certificates are re-checked instantly.</p>
+  <div class="spec-bar">
+    <div class="seg" style="margin:0" role="tablist">${COA_IDS.map(k => `<button class="${id === k ? 'on' : ''}" data-act="specview" data-coa="${k}" role="tab" aria-selected="${id === k}">${COAS[k].short}</button>`).join('')}</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      ${changed ? `<button class="btn ghost sm" data-act="spec-restore">Restore limits</button>` : ''}
+      <button class="btn sm" data-act="import">${ic('upload')} Import from Excel</button>
+    </div>
+  </div>
+  <div class="card spec-card">
+    <div class="spec-head"><h3>${esc(sp.name)}</h3><span class="fine mono">${sp.code} · ${sp.version} · 2 of 214 specs shown</span></div>
+    ${sp.params.map(p => {
+      const ev = evalRow(id, p);
+      const pulse = hintOn('spec', !S.did.specEdit) && id === 'wpc' && p.id === 'moisture' ? 'pulse' : '';
+      const limit = p.type === 'text' ? `<span class="txt">${esc(p.expect)}</span><span class="u">${esc(p.unit)}</span>`
+        : `<span class="op">${p.type === 'min' ? 'Min' : 'Max'}</span><input class="spec-in ${pulse}" inputmode="decimal" data-spec="${id}|${p.id}" value="${p.type === 'min' ? p.min : p.max}" aria-label="${esc(p.name)} ${p.type} limit"><span class="u">${esc(p.unit)}</span>`;
+      return `<div class="spec-row">
+        <div><div class="pn">${esc(p.name)} <span class="req">REQUIRED</span></div>
+          <div class="aliases">${p.aliases.map(a => `<span class="alias">${esc(a)}</span>`).join('')}</div></div>
+        <div class="limit">${limit}</div>
+        <div class="spec-live">Today’s ${esc(c.short)} lot: <span class="mono" style="color:var(--ink)">${esc(valText(p, ev.r))}</span> ${badge(ev.s, ev.reason)}</div>
+      </div>`; }).join('')}
+  </div>
+  <div class="card units">
+    <div class="eyebrow">Unit rules (built in)</div>
+    <ul>${['% ↔ ppm', 'mg/kg ↔ ppm', 'ppb ↔ µg/kg', 'ppb → mg/kg', '10³ cfu/g → cfu/g', 'Absent ↔ Negative', 'ND ↔ Not detected'].map(u => `<li class="alias">${u}</li>`).join('')}</ul>
+  </div>`;
+}
+
+/* ---------- 5. sign-off ---------- */
+function viewSignoff() {
+  const id = S.coa, c = COAS[id], dec = S.decisions[id];
+  const bothDone = COA_IDS.every(k => S.decisions[k]);
+  return `${hint('signoff', !bothDone)}
+  ${coaSwitch()}
+  ${dec ? viewRecord(id) : viewDecide(id)}`;
+}
+function viewDecide(id) {
+  const c = COAS[id], k = counts(id), iss = openIssues(id), sug = suggested(id), ch = S.choice[id];
+  const remarks = S.remarks[id] ?? (ch ? defaultRemarks(id, ch) : '');
+  return `<div class="so">
+    <div class="card so-card">
+      <div class="eyebrow">Ready for sign-off</div>
+      <h3 style="font-size:17px;margin:6px 0 2px">${esc(c.ingredient)}</h3>
+      <div class="fine">${esc(c.supplier)} · <span class="mono">${c.batch}</span></div>
+      <div class="summary-pills" style="margin-top:10px">${k.red ? badge('red', k.red + ' red') : ''}${k.yellow ? badge('yellow', k.yellow + ' yellow') : ''}${badge('green', k.green + ' green')}</div>
+      ${iss.length ? `<ul class="issues">${iss.map(x => `<li><span>${esc(issueText(id, x.p, x.ev))}</span><button class="btn ghost sm" data-act="review" data-p="${x.p.id}">Review</button></li>`).join('')}</ul>`
+                   : `<p class="fine" style="margin:10px 0 0">No open issues. Every result is within your spec.</p>`}
+    </div>
+    <div class="card so-card">
+      <div class="eyebrow">Your decision</div>
+      <div class="choices">${['approve', 'hold', 'reject'].map(dv => `<button class="choice ${dv} ${ch === dv ? 'on' : ''}" data-act="choose" data-d="${dv}" aria-pressed="${ch === dv}">
+        ${sug === dv ? '<span class="sugg">Suggested</span>' : ''}<span class="ci">${ic(dv === 'approve' ? 'check' : dv === 'hold' ? 'pause' : 'x')}</span>
+        <span><b>${DEC[dv].btn}</b><span>${DEC[dv].desc}</span></span></button>`).join('')}</div>
+      ${ch ? `<label for="remarks" class="fine" style="font-weight:600;color:var(--ink-2)">Remarks (saved to the audit record)</label>
+        <textarea id="remarks" data-coa="${id}">${esc(remarks)}</textarea>
+        ${ch === 'reject' ? `<label class="check"><input type="checkbox" data-act="notify" ${S.notify[id] ? 'checked' : ''}> <span>Email an annotated failure report to ${esc(c.supShort)} (${esc(c.email)})</span></label>` : ''}
+        <div class="sig-line">${ic('sig')} Signing as <b style="color:var(--ink)">${OFFICER}</b>, ${OFFICER_ROLE} · ${fmtDate(DEMO_DATE)}, ${nowIST()} IST</div>
+        <button class="btn primary lg" style="width:100%" data-act="sign">${ic('check')} Sign and record: ${DEC[ch].btn}</button>`
+        : `<p class="fine" style="margin:0">Pick a decision to add remarks and sign.</p>`}
+    </div>
+  </div>`;
+}
+function viewRecord(id) {
+  const c = COAS[id], dec = S.decisions[id], sp = S.specs[id], D = DEC[dec.d];
+  const other = COA_IDS.find(k => k !== id && !S.decisions[k]);
+  const trail = S.log.filter(l => l.coa === id);
+  return `<div class="so">
+    <div class="stack">
+      <div class="banner ${dec.d}"><span style="flex:none">${ic(dec.d === 'approve' ? 'check' : dec.d === 'hold' ? 'pause' : 'x', 'style="width:28px;height:28px"')}</span>
+        <div><div class="big">${D.big}</div><div class="by">Signed by ${OFFICER}, ${OFFICER_ROLE} · ${fmtDate(DEMO_DATE)}, ${dec.time} IST</div></div></div>
+      <div class="card so-card">
+        <div class="eyebrow">Audit trail</div>
+        <ul class="trail">${trail.map(l => `<li class="${l.user ? 'user' : ''}"><span class="t">${l.time}</span><span class="w">${esc(l.who)}</span> · ${esc(l.text)}</li>`).join('')}</ul>
+        <p class="fine" style="margin:12px 0 0">Every step is time-stamped and can’t be edited afterwards.</p>
+      </div>
+      <div class="row-acts" style="margin:0">
+        ${other ? `<button class="btn primary" data-act="coa" data-coa="${other}">Next: sign off ${COAS[other].short} ${ic('right')}</button>` : `<button class="btn primary" data-act="go" data-step="drift">Next: supplier drift ${ic('right')}</button>`}
+        <button class="btn ghost" data-act="undo">Undo decision</button>
+      </div>
+    </div>
+    <div class="card sheet">
+      <div class="sheet-head"><div><div class="eyebrow">Audit summary · cover sheet</div><h3 style="margin-top:4px">Incoming Material Release Record</h3>
+        <div class="fine">${FACTORY}, ${FACTORY_CITY}</div></div><span class="mono fine">${c.record}</span></div>
+      <dl class="kv">
+        <div><dt>Material</dt><dd>${esc(c.ingredient)}</dd></div>
+        <div><dt>Supplier</dt><dd>${esc(c.supplier)}</dd></div>
+        <div><dt>Batch</dt><dd class="mono">${c.batch}</dd></div>
+        <div><dt>PO / Qty</dt><dd>${c.po} · ${c.qty}</dd></div>
+        <div><dt>Spec</dt><dd class="mono">${sp.code}</dd></div>
+        <div><dt>Decision</dt><dd>${badge(D.cls, D.label)}</dd></div>
+      </dl>
+      <div class="table-scroll"><table><thead><tr><th>Parameter</th><th>Spec</th><th>Result</th><th>Status</th></tr></thead><tbody>
+        ${sp.params.map(p => { const ev = evalRow(id, p); return `<tr><td>${esc(p.name)}</td><td class="mono">${esc(specText(p))}</td><td class="mono">${esc(valText(p, ev.r))}</td><td>${badge(ev.s, ev.reason)}</td></tr>`; }).join('')}
+      </tbody></table></div>
+      <div class="fine" style="color:var(--ink-2)"><b>Remarks:</b> ${esc(dec.remarks || '—')}</div>
+      ${dec.notified ? `<div class="fine" style="margin-top:6px">${ic('send')} Failure report emailed to ${esc(c.email)} at ${dec.time}</div>` : ''}
+      <div class="note">Prepared for FSSAI and BRCGS audits. The original supplier certificate (${esc(c.file)}) is attached as page 2.</div>
+      <div class="row-acts"><button class="btn" data-act="export">${ic('down')} Export audit packet (PDF)</button></div>
+    </div>
+  </div>`;
+}
+
+/* ---------- 6. supplier drift ---------- */
+function viewDrift() {
+  const min = specOf('tur', 'curcumin').min;
+  const today = resultOf('tur', 'curcumin').value;
+  const pts = DRIFT.map(([m, v], i) => ({ m, v: v === null ? today : v, i, today: v === null }));
+  const hist = pts.slice(0, -1);
+  // least-squares trend on the 11 earlier lots
+  const n = hist.length, sx = hist.reduce((a, p) => a + p.i, 0), sy = hist.reduce((a, p) => a + p.v, 0);
+  const sxy = hist.reduce((a, p) => a + p.i * p.v, 0), sxx = hist.reduce((a, p) => a + p.i * p.i, 0);
+  const slope = (n * sxy - sx * sy) / (n * sxx - sx * sx), icpt = (sy - slope * sx) / n;
+  const warnAt = hist.find(p => p.v <= min * 1.1);
+  const fell = hist.slice(1).filter((p, i) => p.v < hist[i].v).length;
+  const passes = pts.filter(p => p.v >= min).length;
+  const avg6 = pts.slice(-6).reduce((a, p) => a + p.v, 0) / 6;
+  return `${hint('drift')}
+  <h2>Supplier drift</h2>
+  <p class="sub">Every signed-off CoA builds a history. CoA Co-Pilot watches it, so you see a supplier slipping before a lot fails.</p>
+  <div class="drift-grid">
+    <div class="card chart-card">
+      <h3>Curcumin %, Kaveri Agro Spices · turmeric, last 12 lots</h3>
+      <div class="fine">Your limit: min ${fmt(min, 1)} % (spec RM-SP-031)</div>
+      <div class="chart-wrap" id="chartWrap">${driftSVG(pts, min, slope, icpt)}<div class="tip" id="tip" hidden></div></div>
+      <button class="btn ghost sm" data-act="drift-table" style="margin-top:6px">${S.driftTable ? 'Hide' : 'Show'} as table</button>
+      ${S.driftTable ? `<table class="dtable"><thead><tr><th>Lot received</th><th>Curcumin %</th></tr></thead><tbody>${pts.map(p => `<tr><td>${p.m} ${p.i < 1 ? 2025 : 2026}${p.today ? ' (today)' : ''}</td><td class="mono">${fmt(p.v, 2)}</td></tr>`).join('')}</tbody></table>` : ''}
+    </div>
+    <div class="stack">
+      <div class="alert">${ic('trend')}<div><b>Drifting down since March.</b> Curcumin dropped from ${fmt(hist[0].v, 2)}% to ${fmt(hist[n - 1].v, 2)}%, falling in ${fell} of the last ${n - 1} lot-to-lot changes (about ${fmt(Math.abs(slope), 2)}% per lot).
+        ${warnAt ? `An early warning would have reached you in <b>${warnAt.m}</b>, when it first came within 10% of your limit.` : ''}</div></div>
+      <div class="score">
+        <div class="tile"><b>${passes}/12</b><span>Lots within spec</span></div>
+        <div class="tile"><b>11/12</b><span>CoAs on time</span></div>
+        <div class="tile"><b>${avg6.toFixed(2)}%</b><span>Avg curcumin, last 6</span></div>
+        <div class="tile"><b style="color:var(--bad)">High</b><span>${ic('alert')}Supplier risk</span></div>
+      </div>
+      <div class="card so-card"><div class="eyebrow">Suggested next step</div>
+        <p style="margin:6px 0 10px;font-size:14px">Raise a supplier corrective action (CAPA) with Kaveri Agro and test the next 3 lots in-house.</p>
+        <button class="btn sm" data-act="capa">${ic('send')} Draft CAPA request</button></div>
+    </div>
+  </div>`;
+}
+// Chart geometry: a narrower viewBox on phones so the text stays readable after scaling.
+function chartBox() {
+  return innerWidth < 560 ? { W: 360, H: 250, L: 34, R: 58, T: 14, B: 28 } : { W: 640, H: 300, L: 44, R: 70, T: 16, B: 30 };
+}
+function driftSVG(pts, min, slope, icpt) {
+  const { W, H, L, R, T, B } = chartBox(), y0 = 2.4, y1 = 3.8;
+  const x = i => L + i * (W - L - R) / (pts.length - 1);
+  const y = v => T + (y1 - v) / (y1 - y0) * (H - T - B);
+  const ticks = [2.4, 2.8, 3.2, 3.6];
+  const line = pts.map((p, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(p.v).toFixed(1)}`).join('');
+  const tEnd = pts.length - 1;
+  const last = pts[tEnd];
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Line chart: curcumin fell from 3.62% to ${fmt(last.v, 2)}% over 12 lots; limit is ${fmt(min, 1)}%.">
+    <g class="grid">${ticks.map(t => `<line x1="${L}" x2="${W - R}" y1="${y(t)}" y2="${y(t)}"/>`).join('')}</g>
+    <g class="axis">${ticks.map(t => `<text x="${L - 8}" y="${y(t) + 4}" text-anchor="end">${t.toFixed(1)}</text>`).join('')}
+      ${pts.map((p, i) => (i % 3 === 0 || i === tEnd) ? `<text x="${x(i)}" y="${H - 8}" text-anchor="middle">${p.m}</text>` : '').join('')}</g>
+    <line x1="${L}" x2="${W - R}" y1="${y(min)}" y2="${y(min)}" stroke="var(--bad)" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <text x="${W - R + 6}" y="${y(min) + 4}" fill="var(--ink-2)" font-size="11" font-family="var(--mono)">Min ${fmt(min, 1)}</text>
+    <line x1="${x(0)}" y1="${y(icpt)}" x2="${x(tEnd)}" y2="${y(icpt + slope * tEnd)}" stroke="var(--ink-3)" stroke-width="1.5" stroke-dasharray="2 4"/>
+    <path d="${line}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    ${pts.map((p, i) => { const bad = p.v < min; return `<circle cx="${x(i)}" cy="${y(p.v)}" r="${p.today ? 6 : 4.5}" fill="${bad ? 'var(--bad)' : 'var(--accent)'}" stroke="var(--card)" stroke-width="2"/>`; }).join('')}
+    <text x="${x(tEnd) + 10}" y="${y(last.v) + 4}" fill="var(--ink)" font-size="12" font-weight="700" font-family="var(--mono)">${fmt(last.v, 1)}%</text>
+    <text x="${x(tEnd) + 10}" y="${y(last.v) + 18}" fill="var(--ink-3)" font-size="10.5" font-family="var(--sans)">today</text>
+    ${pts.map((p, i) => `<rect data-pt="${i}" x="${x(i) - (W - L - R) / (pts.length - 1) / 2}" y="${T}" width="${(W - L - R) / (pts.length - 1)}" height="${H - T - B}" fill="transparent"/>`).join('')}
+  </svg>`;
+}
+
+/* ---------- done ---------- */
+function viewDone() {
+  const decided = COA_IDS.filter(k => S.decisions[k]);
+  const flagged = COA_IDS.reduce((a, id) => { const k = counts(id, true); a.red += k.red; a.yellow += k.yellow; return a; }, { red: 0, yellow: 0 });
+  let head = 'Here’s what CoA Co-Pilot did for you.';
+  if (S.finishedAt && S.startedAt) {
+    const s = Math.max(1, Math.round((S.finishedAt - S.startedAt) / 1000)), m = Math.floor(s / 60);
+    head = `Two certificates checked and signed in ${m ? m + ' min ' : ''}${s % 60} s.`;
+  }
+  return `<section class="hero"><div class="card hero-card">
+    <div class="eyebrow">Demo complete</div>
+    <h1>${head}</h1>
+    <div class="stats">
+      <div class="stat"><b>19</b><span>tests read, none typed</span></div>
+      <div class="stat"><b>${flagged.red}</b><span>failures or missing tests caught</span></div>
+      <div class="stat"><b>${flagged.yellow}</b><span>values flagged for a quick check</span></div>
+      <div class="stat"><b>${decided.length}</b><span>audit record${decided.length === 1 ? '' : 's'} saved</span></div>
+    </div>
+    <div class="decisions">${COA_IDS.map(id => `<div class="d"><span><b>${COAS[id].short}</b> <span class="fine">· ${esc(COAS[id].supShort)}</span></span>
+      ${S.decisions[id] ? badge(DEC[S.decisions[id].d].cls, DEC[S.decisions[id].d].label) : `<button class="btn sm" data-act="signoff-coa" data-coa="${id}">Sign off</button>`}</div>`).join('')}</div>
+    <p class="lede" style="font-size:15px">Today this usually means printing PDFs and checking them with a calculator and a spreadsheet. <b>Want to see it on your own supplier CoAs?</b> Send one or two over and I’ll show you the flagged results.</p>
+    <div class="cta"><a class="btn primary lg" href="${CONTACT_URL}" data-act="contact">Contact</a><button class="btn lg" data-act="reset">Run the demo again</button></div>
+    <p class="fine">Sample data only. All companies, people and results are fictional.</p>
+  </div></section>`;
+}
+
+/* ---------- modal ---------- */
+function viewModal() {
+  const m = S.modal, k = counts(m.coa);
+  return `<div class="scrim" data-act="modal-close"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="mt" data-stop>
+    <h3 id="mt" style="color:var(--bad)">${ic('alert')} Approve with ${k.red} red result${k.red === 1 ? '' : 's'}?</h3>
+    <p>Approving releases this lot to production. It will be recorded as a <b>QA override</b> under your name, and auditors will see it.</p>
+    <div class="acts"><button class="btn" data-act="modal-close">Cancel</button><button class="btn danger" data-act="sign-force">Approve anyway</button></div>
+  </div></div>`;
+}
+
+/* =====================================================================
+   AFTER RENDER: scroll the highlighted line into view, chart tooltips
+   ===================================================================== */
+function afterRender() {
+  if (S.step === 'check' && S.sel && S._scrollCert) {
+    S._scrollCert = false;
+    requestAnimationFrame(() => {
+      const el = document.querySelector('.paper .hl, .paper tr.missing');
+      if (!el) return;
+      if (isDesktop()) {
+        const f = $('#certFrame'), fr = f.getBoundingClientRect(), er = el.getBoundingClientRect();
+        f.scrollBy({ top: er.top - fr.top - fr.height / 2 + er.height / 2, behavior: 'smooth' });
+      } else if (S.tab === 'cert') {
+        const er = el.getBoundingClientRect();
+        window.scrollTo({ top: window.scrollY + er.top - innerHeight / 2 + er.height / 2, behavior: 'smooth' });
+      }
+    });
+  }
+  if (S.step === 'drift') bindChart();
+}
+function bindChart() {
+  const wrap = $('#chartWrap'), tip = $('#tip');
+  if (!wrap) return;
+  const min = specOf('tur', 'curcumin').min, today = resultOf('tur', 'curcumin').value;
+  const show = e => {
+    const r = e.target.closest('[data-pt]'); if (!r) return;
+    const i = +r.dataset.pt, [m, v0] = DRIFT[i], v = v0 === null ? today : v0;
+    const svg = wrap.querySelector('svg'), sb = svg.getBoundingClientRect(), wb = wrap.getBoundingClientRect();
+    const { W, H, L, R, T, B } = chartBox(), sc = sb.width / W;
+    const cx = (L + i * (W - L - R) / (DRIFT.length - 1)) * sc + (sb.left - wb.left);
+    const cy = (T + (3.8 - v) / 1.4 * (H - T - B)) * sc + (sb.top - wb.top);
+    tip.innerHTML = `${m} ${i < 1 ? 2025 : 2026}${v0 === null ? ' · today' : ''}: <b>${fmt(v, 2)}%</b> ${v < min ? '· below limit' : ''}`;
+    tip.style.left = cx + 'px'; tip.style.top = cy + 'px'; tip.hidden = false;
+  };
+  wrap.addEventListener('mousemove', show);
+  wrap.addEventListener('click', show);
+  wrap.addEventListener('mouseleave', () => { tip.hidden = true; });
+}
+
+/* =====================================================================
+   EVENTS
+   ===================================================================== */
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-act]');
+  if (!el) return;
+  if (el.dataset.act === 'modal-close' && e.target.closest('[data-stop]') && !e.target.closest('.btn')) return;
+  const a = el.dataset.act;
+  const coa = el.dataset.coa;
+  switch (a) {
+    case 'start': S.startedAt = Date.now(); go('email'); break;
+    case 'go': go(el.dataset.step); break;
+    case 'reset': S = freshState(); render(); window.scrollTo(0, 0); toast('Demo reset'); break;
+    case 'contact':
+      if (CONTACT_URL === '#contact') { e.preventDefault(); toast('Contact details coming soon.'); }
+      break;
+    case 'hint-off': S.hintsOff[el.dataset.step] = true; render(); break;
+    case 'ingest': runIngest(); break;
+    case 'filter': S.inboxFilter = el.dataset.f; render(); break;
+    case 'open': S.coa = coa; S.sel = null; S.did.openedCoa = true; go('check'); break;
+    case 'old': toast('Sample only. Open one of the new certificates at the top.'); break;
+    case 'coa': S.coa = coa; S.sel = null; S.tab = 'results'; render(); if (S.step === 'signoff') window.scrollTo(0, 0); break;
+    case 'tab': S.tab = el.dataset.tab; if (S.tab === 'cert') S._scrollCert = true; render(); if (S.tab === 'results') scrollToRow(); break;
+    case 'sel':
+      S.sel = S.sel === el.dataset.p ? null : el.dataset.p; S.did.selected = true; S._scrollCert = true; render(); break;
+    case 'showcert': S.tab = 'cert'; S._scrollCert = true; render(); break;
+    case 'verify': {
+      const p = specOf(S.coa, el.dataset.p), inp = $('#editVal'), r = resultOf(S.coa, p.id);
+      const v = parseFloat(String(inp.value).replace(',', '.'));
+      if (isNaN(v)) { toast('Enter a number'); inp.focus(); break; }
+      const t = nowIST();
+      if (v !== r.value) { S.edits[S.coa][p.id] = { from: r.value, to: v, by: OFFICER, time: t }; log(S.coa, `Corrected ${p.name}: ${fmt(r.value, p.dp)} → ${fmt(v, p.dp)} ${p.unit}`); }
+      S.verified[S.coa][p.id] = t;
+      log(S.coa, `Checked ${p.name} against the certificate (${fmt(v, p.dp)} ${p.unit})`);
+      render(); toast(`${p.name} checked and logged`); break;
+    }
+    case 'request': {
+      const p = specOf(S.coa, el.dataset.p), c = COAS[S.coa];
+      S.requested[S.coa][p.id] = nowIST(); log(S.coa, `Requested ${p.name} report from ${c.email}`);
+      render(); toast(`Request sent to ${c.email} (demo)`); break;
+    }
+    case 'specview': S.specView = coa; render(); break;
+    case 'spec-restore': S.specs = clone(SPECS_ORIG); render(); toast('Original limits restored'); break;
+    case 'import': toast('In the product: upload your Excel spec sheet and every ingredient is set up in one go.'); break;
+    case 'choose': {
+      S.choice[S.coa] = el.dataset.d;
+      if (!S.remarksTouched[S.coa]) S.remarks[S.coa] = defaultRemarks(S.coa, el.dataset.d);
+      render(); break;
+    }
+    case 'notify': S.notify[S.coa] = el.checked; break;
+    case 'sign': {
+      if (S.choice[S.coa] === 'approve' && counts(S.coa).red) { S.modal = { coa: S.coa }; render(); break; }
+      commit(S.coa); break;
+    }
+    case 'sign-force': commit(S.modal.coa, true); break;
+    case 'modal-close': S.modal = null; render(); break;
+    case 'undo': {
+      const dname = DEC[S.decisions[S.coa].d].label;
+      delete S.decisions[S.coa]; S.finishedAt = null; log(S.coa, `Decision “${dname}” withdrawn (demo undo)`); render(); break;
+    }
+    case 'review': S.sel = el.dataset.p; S.tab = 'results'; S._scrollCert = true; S.step = 'check'; S.seen.check = true; render(); scrollToRow(); break;
+    case 'export': toast('In the product: a PDF with this cover sheet plus the supplier’s original CoA.'); break;
+    case 'drift-table': S.driftTable = !S.driftTable; render(); break;
+    case 'capa': toast('CAPA request drafted to dispatch@kaveriagro.in (demo)'); break;
+    case 'signoff-coa': S.coa = coa; go('signoff'); break;
+  }
+});
+document.addEventListener('input', e => {
+  if (e.target.id === 'remarks') { S.remarks[S.coa] = e.target.value; S.remarksTouched[S.coa] = true; }
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.dataset.spec) {
+    const [coa, pid] = t.dataset.spec.split('|'), p = specOf(coa, pid);
+    const v = parseFloat(String(t.value).replace(',', '.'));
+    if (isNaN(v)) { t.value = p.type === 'min' ? p.min : p.max; return; }
+    const old = p.type === 'min' ? p.min : p.max;
+    if (v === old) return;
+    p[p.type] = v; S.did.specEdit = true;
+    log(coa, `Spec ${S.specs[coa].code}: ${p.name} ${p.type} limit changed ${fmt(old, p.dp)} → ${fmt(v, p.dp)} ${p.unit}`);
+    const ev = evalRow(coa, p);
+    render();
+    toast(`Re-checked: ${COAS[coa].short} ${p.name} is now ${ev.s === 'red' ? '<b>red</b>' : ev.s}`);
+  }
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.dataset && e.target.dataset.spec) e.target.blur();
+  if (e.key === 'Enter' && e.target.id === 'editVal') { const b = document.querySelector('[data-act="verify"]'); b && b.click(); }
+  if (e.key === 'Escape' && S.modal) { S.modal = null; render(); }
+});
+function scrollToRow() {
+  requestAnimationFrame(() => { const r = document.querySelector('.row.sel'); if (r) r.scrollIntoView({ block: 'center' }); });
+}
+function runIngest() {
+  if (S.ingest >= 0) return;
+  S.ingest = 0; S.hintsOff.email = true; render();
+  requestAnimationFrame(() => { const p = document.querySelector('.proc'); if (p) p.scrollIntoView({ behavior: 'smooth', block: 'center' }); });
+  const run = S; // if the demo is reset mid-animation, this run stops
+  const tick = () => {
+    if (S !== run) return;
+    if (S.step !== 'email' || S.ingest >= 5) { if (S.ingest < 5) ingestNow(); return; }
+    S.ingest++; if (S.ingest >= 5) seedLog();
+    render(); if (S.ingest < 5) setTimeout(tick, 550);
+  };
+  setTimeout(tick, 550);
+}
+function commit(coa, override = false) {
+  const d = S.choice[coa], c = COAS[coa], t = nowIST();
+  const remarks = S.remarks[coa] ?? defaultRemarks(coa, d);
+  const notified = d === 'reject' && S.notify[coa];
+  S.decisions[coa] = { d, time: t, remarks, notified };
+  S.modal = null;
+  log(coa, `${override ? 'QA override: ' : ''}Signed off as ${DEC[d].label}${remarks ? ' · “' + remarks + '”' : ''}`, OFFICER, t);
+  if (notified) log(coa, `Annotated failure report emailed to ${c.email}`, 'System', t);
+  if (COA_IDS.every(k => S.decisions[k]) && !S.finishedAt) S.finishedAt = Date.now();
+  render(); window.scrollTo(0, 0);
+  toast(`${c.short}: ${DEC[d].label}. Audit record ${c.record} saved.`);
+}
+
+// index.html#og opens straight on the split-screen check (used to make og-image.png).
+if (location.hash === '#og') {
+  ingestNow(); S.step = 'check'; S.seen.check = true; S.sel = 'tpc'; S._scrollCert = true;
+  Object.keys(HINTS).forEach(k => S.hintsOff[k] = true);
+}
+render();
+</script>
+</body>
+</html>

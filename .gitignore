@@ -1,0 +1,7 @@
+# Only the public site files go to GitHub. Everything else (leads, notes, tooling) stays local.
+*
+!index.html
+!favicon.svg
+!og-image.png
+!CNAME
+!.gitignore
